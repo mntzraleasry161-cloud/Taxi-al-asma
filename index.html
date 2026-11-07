@@ -10,19 +10,14 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 /* =========================================================
-   KOKTON — Cinematic Luxury Taxi App
-   Single-file build — save as index.html → upload to GitHub Pages
+   KOKTON — Cinematic Luxury Taxi App (with Auth)
    ========================================================= */
-
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{
-  background:#050507;
-  color:#fff;
+  background:#050507;color:#fff;
   font-family:-apple-system,'SF Arabic','Segoe UI',Tahoma,Arial,sans-serif;
-  min-height:100vh;
-  overflow-x:hidden;
-  user-select:none;
+  min-height:100vh;overflow-x:hidden;user-select:none;
 }
 input,textarea{user-select:text;font-family:inherit}
 button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
@@ -30,36 +25,15 @@ img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 
 :root{
-  --gold:#ffd24a;
-  --gold-2:#ffb800;
-  --gold-3:#8a6200;
-  --gold-light:#fff3b0;
-  --bg:#050507;
-  --bg-2:#0a0a0f;
-  --panel:#121116;
-  --panel-2:#1a1820;
-  --border:rgba(255,196,0,0.18);
-  --border-2:rgba(255,255,255,0.08);
-  --text:#ffffff;
-  --muted:#a09a8a;
-  --success:#00d4a0;
-  --danger:#ff4d6d;
-  --info:#4ea1ff;
-  --purple:#7c5cff;
-  --shadow-gold:0 12px 30px -10px rgba(255,196,0,0.35);
-  --shadow-dark:0 24px 50px -20px rgba(0,0,0,0.95);
-  --radius:22px;
-  --radius-sm:14px;
+  --gold:#ffd24a;--gold-2:#ffb800;--gold-3:#8a6200;--gold-light:#fff3b0;
+  --bg:#050507;--bg-2:#0a0a0f;--panel:#121116;--panel-2:#1a1820;
+  --border:rgba(255,196,0,0.18);--border-2:rgba(255,255,255,0.08);
+  --text:#ffffff;--muted:#a09a8a;
+  --success:#00d4a0;--danger:#ff4d6d;--info:#4ea1ff;--purple:#7c5cff;
+  --radius:22px;--radius-sm:14px;
 }
 
-/* ============ UTILITIES ============ */
 .hidden{display:none!important}
-.gold-text{
-  background:linear-gradient(180deg,#fff3b0 0%,#ffd24a 30%,#d49800 65%,#8a6200 100%);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
-  filter:drop-shadow(0 2px 8px rgba(255,196,0,0.35));
-}
 
 /* ============ SPLASH ============ */
 #splash{
@@ -68,20 +42,15 @@ a{color:inherit;text-decoration:none}
     radial-gradient(circle at 50% 45%, rgba(255,196,0,0.18) 0%, transparent 55%),
     radial-gradient(circle at 50% 50%, #14110a 0%, #050507 70%);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  overflow:hidden;
-  transition:opacity .8s ease, visibility .8s ease;
+  overflow:hidden;transition:opacity .8s ease, visibility .8s ease;
 }
 #splash.done{opacity:0;visibility:hidden}
 .splash-orb{
   position:absolute;width:340px;height:340px;border-radius:50%;
   background:radial-gradient(circle,rgba(255,196,0,0.22) 0%,transparent 65%);
-  filter:blur(30px);
-  animation:orbPulse 3s ease-in-out infinite;
+  filter:blur(30px);animation:orbPulse 3s ease-in-out infinite;
 }
-@keyframes orbPulse{
-  0%,100%{transform:scale(1);opacity:.7}
-  50%{transform:scale(1.2);opacity:1}
-}
+@keyframes orbPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.2);opacity:1}}
 .splash-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .particle{
   position:absolute;bottom:-10px;border-radius:50%;
@@ -95,8 +64,7 @@ a{color:inherit;text-decoration:none}
 }
 .splash-logo{
   position:relative;z-index:2;
-  font-size:clamp(48px,15vw,72px);
-  font-weight:900;letter-spacing:8px;
+  font-size:clamp(48px,15vw,72px);font-weight:900;letter-spacing:8px;
   background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0,#ffd24a,#8a6200);
   background-size:220% 100%;
   -webkit-background-clip:text;background-clip:text;
@@ -105,21 +73,15 @@ a{color:inherit;text-decoration:none}
   animation:logoReveal 1.6s cubic-bezier(.2,.9,.2,1) forwards, shimmer 3s linear 1s infinite;
   transform:scale(.3) rotateX(40deg);opacity:0;
 }
-@keyframes logoReveal{
-  to{transform:scale(1) rotateX(0);opacity:1}
-}
-@keyframes shimmer{
-  from{background-position:200% 0}
-  to{background-position:-200% 0}
-}
+@keyframes logoReveal{to{transform:scale(1) rotateX(0);opacity:1}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 .splash-sub{
   position:relative;z-index:2;margin-top:6px;
   font-size:15px;letter-spacing:4px;color:#ffd24a;font-weight:700;
   animation:fadeInUp .8s ease 1.4s forwards;opacity:0;
 }
 .splash-line{
-  position:relative;z-index:2;margin-top:24px;
-  width:120px;height:2px;border-radius:2px;
+  position:relative;z-index:2;margin-top:24px;width:120px;height:2px;border-radius:2px;
   background:linear-gradient(90deg,transparent,#ffd24a,transparent);
   animation:lineGrow 1.2s ease 1.8s forwards;opacity:0;transform:scaleX(0);
 }
@@ -129,10 +91,7 @@ a{color:inherit;text-decoration:none}
   font-size:12px;color:#a09a8a;letter-spacing:2px;
   animation:fadeInUp .8s ease 2.2s forwards;opacity:0;
 }
-@keyframes fadeInUp{
-  from{opacity:0;transform:translateY(12px)}
-  to{opacity:1;transform:translateY(0)}
-}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .splash-progress{
   position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
   width:160px;height:3px;border-radius:3px;background:rgba(255,196,0,0.12);overflow:hidden;
@@ -140,9 +99,8 @@ a{color:inherit;text-decoration:none}
 }
 .splash-progress::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0);
-  border-radius:3px;
-  animation:progressFill 2.8s cubic-bezier(.6,.05,.3,.95) forwards;
+  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0);border-radius:3px;
+  animation:progressFill 2.4s cubic-bezier(.6,.05,.3,.95) forwards;
   transform-origin:right;transform:scaleX(0);
 }
 @keyframes progressFill{to{transform:scaleX(1)}}
@@ -155,8 +113,7 @@ a{color:inherit;text-decoration:none}
     radial-gradient(circle at 50% 80%, rgba(124,92,255,0.06) 0%, transparent 60%),
     #050507;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:24px;
-  transition:opacity .5s ease, visibility .5s ease;
+  padding:24px;transition:opacity .5s ease, visibility .5s ease;
 }
 #rolePicker.done{opacity:0;visibility:hidden}
 .role-brand{text-align:center;margin-bottom:8px}
@@ -165,10 +122,7 @@ a{color:inherit;text-decoration:none}
   filter:drop-shadow(0 0 20px rgba(255,196,0,0.6));
   animation:floatY 3s ease-in-out infinite;
 }
-@keyframes floatY{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-6px)}
-}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .brand-name{
   font-size:52px;font-weight:900;letter-spacing:6px;
   background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0,#ffd24a,#8a6200);
@@ -176,21 +130,15 @@ a{color:inherit;text-decoration:none}
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
   filter:drop-shadow(0 0 24px rgba(255,196,0,0.4));
-  animation:shimmer 4s linear infinite;
-  line-height:1.1;
+  animation:shimmer 4s linear infinite;line-height:1.1;
 }
 .brand-sub{font-size:14px;color:#ffd24a;letter-spacing:4px;margin-top:4px;font-weight:700}
-.role-title{
-  margin:32px 0 16px;font-size:15px;color:#a09a8a;letter-spacing:2px;
-}
-.role-cards{
-  display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:420px;
-}
+.role-title{margin:32px 0 16px;font-size:15px;color:#a09a8a;letter-spacing:2px}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:420px}
 .role-card{
   position:relative;padding:24px 14px;
   background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
+  border:1px solid var(--border);border-radius:var(--radius);
   text-align:center;color:#fff;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.05),
@@ -207,19 +155,38 @@ a{color:inherit;text-decoration:none}
 .role-card:hover{border-color:rgba(255,196,0,0.5);transform:translateY(-4px)}
 .role-card:hover::before{transform:translateX(100%)}
 .role-card:active{transform:scale(.97)}
-.role-card.driver{
-  background:linear-gradient(160deg,#22190a 0%,#0f0c05 100%);
-  border-color:rgba(255,196,0,0.32);
-}
-.role-emoji{
-  font-size:48px;margin-bottom:10px;display:block;
-  filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3));
-}
+.role-card.driver{background:linear-gradient(160deg,#22190a 0%,#0f0c05 100%);border-color:rgba(255,196,0,0.32)}
+.role-emoji{font-size:48px;margin-bottom:10px;display:block;filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3))}
 .role-name{font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;position:relative;z-index:1}
 .role-desc{font-size:11px;color:#a09a8a;line-height:1.5;position:relative;z-index:1}
-.role-footer{
-  position:absolute;bottom:20px;font-size:10px;color:#5a554a;letter-spacing:1px;
+.role-footer{position:absolute;bottom:20px;font-size:10px;color:#5a554a;letter-spacing:1px}
+
+/* ============ AUTH SCREEN ============ */
+#authScreen{
+  position:fixed;inset:0;z-index:9100;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,196,0,0.10) 0%, transparent 60%),
+    radial-gradient(circle at 50% 90%, rgba(124,92,255,0.06) 0%, transparent 60%),
+    #050507;
+  display:flex;flex-direction:column;align-items:center;
+  padding:32px 20px 40px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
+.auth-wrap{width:100%;max-width:420px}
+.auth-tabs{
+  display:flex;gap:6px;margin:24px 0 16px;padding:4px;
+  background:#0c0b10;border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+}
+.auth-tab{
+  flex:1;padding:12px;border-radius:12px;
+  color:#a09a8a;font-size:13px;font-weight:900;transition:all .2s;
+}
+.auth-tab.active{
+  background:linear-gradient(180deg,rgba(255,196,0,0.18),rgba(255,196,0,0.04));
+  color:var(--gold);box-shadow:0 0 20px -6px rgba(255,196,0,0.45);
+}
+.auth-form{animation:screenIn .3s ease}
 
 /* ============ APP SHELL ============ */
 #app{
@@ -228,24 +195,19 @@ a{color:inherit;text-decoration:none}
     radial-gradient(circle at 50% 0%, rgba(255,196,0,0.06) 0%, transparent 40%),
     radial-gradient(circle at 100% 100%, rgba(124,92,255,0.04) 0%, transparent 50%),
     #050507;
-  overflow:hidden;
-  animation:fadeIn .5s ease;
+  overflow:hidden;animation:fadeIn .5s ease;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
 .top{
-  position:sticky;top:0;z-index:100;
-  height:64px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 16px;
+  position:sticky;top:0;z-index:100;height:64px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
   background:linear-gradient(180deg,#0a0a0f 0%,rgba(10,10,15,0.92) 100%);
-  backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(255,196,0,0.10);
+  backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,196,0,0.10);
 }
 .iconbtn{
   width:42px;height:42px;border-radius:13px;
   background:linear-gradient(160deg,#1a1820,#0c0b10);
-  border:1px solid rgba(255,255,255,0.10);
-  color:#ffd24a;font-size:20px;
+  border:1px solid rgba(255,255,255,0.10);color:#ffd24a;font-size:20px;
   display:flex;align-items:center;justify-content:center;
   transition:transform .2s, border-color .2s;
 }
@@ -264,44 +226,25 @@ a{color:inherit;text-decoration:none}
   background:rgba(255,196,0,0.12);color:#ffd24a;font-weight:700;
   border:1px solid rgba(255,196,0,0.25);
 }
-
-/* ============ SCREENS ============ */
-.screen{
-  display:none;
-  padding:16px 16px 100px;
-  animation:screenIn .35s cubic-bezier(.2,.9,.2,1);
-}
+.screen{display:none;padding:16px 16px 100px;animation:screenIn .35s cubic-bezier(.2,.9,.2,1)}
 .screen.active{display:block}
-@keyframes screenIn{
-  from{opacity:0;transform:translateY(12px)}
-  to{opacity:1;transform:translateY(0)}
-}
-.section-title{
-  font-size:19px;font-weight:900;margin:14px 0 10px;
-  display:flex;align-items:center;gap:8px;
-}
-.section-title::before{
-  content:'';width:4px;height:18px;border-radius:4px;
-  background:linear-gradient(180deg,#ffd24a,#8a6200);
-}
+@keyframes screenIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:19px;font-weight:900;margin:14px 0 10px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:4px;height:18px;border-radius:4px;background:linear-gradient(180deg,#ffd24a,#8a6200)}
 .muted{color:var(--muted);font-size:13px;line-height:1.7}
 
-/* ============ BOTTOM NAV ============ */
 .bottom{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   width:min(520px,100%);height:74px;z-index:500;
   background:linear-gradient(0deg,#0a0a0f 0%,rgba(10,10,15,0.96) 100%);
-  backdrop-filter:blur(20px);
-  border-top:1px solid rgba(255,196,0,0.10);
-  display:flex;justify-content:space-around;align-items:center;
-  padding:0 6px;
+  backdrop-filter:blur(20px);border-top:1px solid rgba(255,196,0,0.10);
+  display:flex;justify-content:space-around;align-items:center;padding:0 6px;
 }
 .nav{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
   color:#6a6659;font-size:10px;font-weight:700;
   padding:8px 4px;border-radius:14px;
-  transition:color .2s, background .2s, transform .2s;
-  position:relative;
+  transition:color .2s, background .2s, transform .2s;position:relative;
 }
 .nav b{font-size:20px;line-height:1;font-weight:400}
 .nav.active{color:var(--gold);background:rgba(255,196,0,0.06)}
@@ -312,68 +255,48 @@ a{color:inherit;text-decoration:none}
 }
 .nav:active{transform:scale(.94)}
 
-/* ============ COMMON COMPONENTS ============ */
 .cta-primary{
-  width:100%;padding:16px;margin-top:16px;
-  border-radius:18px;font-size:17px;font-weight:900;
+  width:100%;padding:16px;margin-top:16px;border-radius:18px;
+  font-size:17px;font-weight:900;
   background:linear-gradient(180deg,#ffe36b 0%,#ffc400 45%,#d99a00 100%);
   color:#17120a;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    0 6px 0 #8a6200,
-    0 16px 30px -10px rgba(255,196,0,0.45);
-  transition:transform .1s, box-shadow .1s;
-  position:relative;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5),0 6px 0 #8a6200,0 16px 30px -10px rgba(255,196,0,0.45);
+  transition:transform .1s, box-shadow .1s;position:relative;overflow:hidden;
 }
 .cta-primary::before{
   content:'';position:absolute;inset:0;
   background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.6) 50%,transparent 70%);
-  transform:translateX(-100%);
-  animation:shine 3s ease-in-out infinite;
+  transform:translateX(-100%);animation:shine 3s ease-in-out infinite;
 }
-@keyframes shine{
-  0%,60%{transform:translateX(-100%)}
-  100%{transform:translateX(100%)}
-}
+@keyframes shine{0%,60%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .cta-primary:active{transform:translateY(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.4),0 2px 0 #8a6200,0 6px 16px -6px rgba(255,196,0,0.4)}
 
 .cta-ghost{
   width:100%;padding:14px;margin-top:10px;
   background:linear-gradient(160deg,#1a1820,#0c0b10);
   border:1px solid rgba(255,255,255,0.10);
-  color:#e8e3d4;font-weight:700;font-size:14px;
-  border-radius:16px;
+  color:#e8e3d4;font-weight:700;font-size:14px;border-radius:16px;
   transition:border-color .2s, transform .2s;
 }
 .cta-ghost:active{transform:scale(.97);border-color:rgba(255,196,0,0.4)}
 
 .field{
   width:100%;padding:14px 16px;margin-top:8px;
-  background:#0c0b10;
-  border:1px solid rgba(255,255,255,0.09);
-  border-radius:14px;
-  color:#fff;font-size:14px;outline:none;
+  background:#0c0b10;border:1px solid rgba(255,255,255,0.09);
+  border-radius:14px;color:#fff;font-size:14px;outline:none;
   transition:border-color .2s, box-shadow .2s;
 }
 .field::placeholder{color:#5a554a}
-.field:focus{
-  border-color:rgba(255,196,0,0.55);
-  box-shadow:0 0 0 3px rgba(255,196,0,0.10);
-}
+.field:focus{border-color:rgba(255,196,0,0.55);box-shadow:0 0 0 3px rgba(255,196,0,0.10)}
+.field[readonly]{opacity:.65;cursor:not-allowed}
 label{display:block;font-size:12px;color:#a09a8a;font-weight:700;margin-top:12px}
 label:first-child{margin-top:0}
-
 .formbox{
   background:linear-gradient(160deg,#14121a 0%,#0a090f 100%);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:16px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.04),
-    0 20px 40px -20px rgba(0,0,0,0.9);
+  border:1px solid var(--border);border-radius:var(--radius);padding:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 20px 40px -20px rgba(0,0,0,0.9);
 }
 
-/* ============ CUSTOMER HOME ============ */
 .scene-3d{
   position:relative;height:230px;margin:4px 0 16px;
   border-radius:var(--radius);overflow:hidden;
@@ -381,21 +304,17 @@ label:first-child{margin-top:0}
     radial-gradient(circle at 50% 100%, rgba(255,196,0,0.18) 0%, transparent 60%),
     linear-gradient(180deg,#15131c 0%,#08070b 100%);
   border:1px solid rgba(255,196,0,0.18);
-  box-shadow:
-    inset 0 0 60px rgba(255,196,0,0.06),
-    0 20px 40px -20px rgba(0,0,0,0.95);
+  box-shadow:inset 0 0 60px rgba(255,196,0,0.06),0 20px 40px -20px rgba(0,0,0,0.95);
   perspective:400px;
 }
 .scene-buildings{
   position:absolute;bottom:52px;left:0;right:0;height:110px;
-  display:flex;align-items:flex-end;justify-content:space-around;
-  padding:0 8px;
+  display:flex;align-items:flex-end;justify-content:space-around;padding:0 8px;
 }
 .scene-buildings i{
   position:relative;display:block;width:11%;
   background:linear-gradient(180deg,#2a2635 0%,#0d0c12 100%);
-  border:1px solid rgba(255,196,0,0.12);
-  border-radius:3px 3px 0 0;
+  border:1px solid rgba(255,196,0,0.12);border-radius:3px 3px 0 0;
   box-shadow:inset 0 0 12px rgba(255,196,0,0.04);
 }
 .scene-buildings i::after{
@@ -426,8 +345,7 @@ label:first-child{margin-top:0}
 @keyframes roadMove{from{background-position:0 0}to{background-position:60px 0}}
 .scene-taxi{
   position:absolute;bottom:18px;left:50%;
-  transform:translateX(-50%) scaleX(-1);
-  font-size:92px;z-index:2;
+  transform:translateX(-50%) scaleX(-1);font-size:92px;z-index:2;
   filter:drop-shadow(0 12px 20px rgba(255,196,0,0.35)) drop-shadow(0 4px 8px rgba(0,0,0,0.8));
   animation:taxiFloat 3s ease-in-out infinite;
 }
@@ -446,17 +364,13 @@ label:first-child{margin-top:0}
 .hero-title span{color:var(--gold)}
 .hero-tag{font-size:12px;color:#a09a8a;letter-spacing:2px;margin-top:4px}
 
-.services-3d{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
-}
+.services-3d{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .service-3d{
   position:relative;padding:16px 6px 14px;
   background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
-  border:1px solid rgba(255,196,0,0.22);
-  border-radius:18px;text-align:center;color:#fff;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 14px 30px -14px rgba(0,0,0,0.9);
+  border:1px solid rgba(255,196,0,0.22);border-radius:18px;
+  text-align:center;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 14px 30px -14px rgba(0,0,0,0.9);
   transition:transform .25s cubic-bezier(.2,.9,.2,1), box-shadow .25s, border-color .25s;
   overflow:hidden;
 }
@@ -472,14 +386,12 @@ label:first-child{margin-top:0}
 .service-3d strong{display:block;font-size:13px;color:var(--gold);font-weight:900;position:relative;z-index:1}
 .service-3d small{display:block;font-size:9.5px;color:#a09a8a;margin-top:4px;position:relative;z-index:1}
 
-/* ============ BOOKING ============ */
 .map-tabs{display:flex;gap:8px;margin-bottom:10px}
 .map-tab{
   flex:1;padding:11px;border-radius:14px;
   background:linear-gradient(160deg,#1a1820,#0c0b10);
   border:1px solid rgba(255,255,255,0.09);
-  color:#a09a8a;font-size:12px;font-weight:700;
-  transition:all .2s;
+  color:#a09a8a;font-size:12px;font-weight:700;transition:all .2s;
 }
 .map-tab.active{
   border-color:rgba(255,196,0,0.6);color:var(--gold);
@@ -488,8 +400,7 @@ label:first-child{margin-top:0}
 }
 #customerMap,#driverMap{
   height:38vh;min-height:240px;border-radius:var(--radius);
-  border:1px solid rgba(255,196,0,0.2);
-  overflow:hidden;z-index:1;
+  border:1px solid rgba(255,196,0,0.2);overflow:hidden;z-index:1;
   box-shadow:inset 0 0 40px rgba(0,0,0,0.5);
 }
 .leaflet-container{background:#0a0a0f!important;font-family:inherit!important}
@@ -509,12 +420,10 @@ label:first-child{margin-top:0}
 .row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .price{color:var(--gold);font-size:24px;font-weight:900;text-shadow:0 0 20px rgba(255,196,0,0.4)}
 
-/* ============ ORDER CARDS ============ */
 .order-item{
   position:relative;padding:14px;margin-top:12px;
   background:linear-gradient(160deg,#14121a 0%,#0a090f 100%);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.08);border-radius:18px;
   box-shadow:0 16px 30px -16px rgba(0,0,0,0.9);
   animation:screenIn .3s ease;
 }
@@ -523,8 +432,7 @@ label:first-child{margin-top:0}
 .status-badge{
   font-size:10px;font-weight:900;padding:5px 10px;border-radius:20px;
   background:rgba(255,196,0,0.12);color:#ffd24a;
-  border:1px solid rgba(255,196,0,0.25);
-  letter-spacing:.3px;white-space:nowrap;
+  border:1px solid rgba(255,196,0,0.25);letter-spacing:.3px;white-space:nowrap;
 }
 .status-badge.accepted{background:rgba(78,161,255,0.15);color:#4ea1ff;border-color:rgba(78,161,255,0.3)}
 .status-badge.arrived{background:rgba(124,92,255,0.15);color:#7c5cff;border-color:rgba(124,92,255,0.3)}
@@ -538,9 +446,7 @@ label:first-child{margin-top:0}
 .btn-accept{
   flex:1;padding:12px;border-radius:13px;
   background:linear-gradient(180deg,#ffe36b,#ffc400);color:#17120a;
-  font-weight:900;font-size:14px;
-  box-shadow:0 4px 0 #8a6200;
-  transition:transform .1s;
+  font-weight:900;font-size:14px;box-shadow:0 4px 0 #8a6200;transition:transform .1s;
 }
 .btn-accept:active{transform:translateY(3px);box-shadow:0 1px 0 #8a6200}
 .btn-cancel{
@@ -551,12 +457,10 @@ label:first-child{margin-top:0}
 .btn-next{
   flex:1;padding:12px;border-radius:13px;
   background:linear-gradient(180deg,#4ea1ff,#1e6fd9);color:#fff;
-  font-weight:900;font-size:14px;
-  box-shadow:0 4px 0 #0d4a99;
+  font-weight:900;font-size:14px;box-shadow:0 4px 0 #0d4a99;
 }
 .btn-next:active{transform:translateY(3px);box-shadow:0 1px 0 #0d4a99}
 
-/* ============ DRIVER ============ */
 .driver-status{
   display:flex;justify-content:space-between;align-items:center;
   padding:16px;margin-bottom:12px;
@@ -570,8 +474,7 @@ label:first-child{margin-top:0}
   position:relative;display:flex;align-items:center;gap:8px;
   padding:8px 14px;border-radius:20px;
   background:#0c0b10;border:1px solid rgba(255,255,255,0.1);
-  color:#a09a8a;font-size:12px;font-weight:900;
-  transition:all .3s;
+  color:#a09a8a;font-size:12px;font-weight:900;transition:all .3s;
 }
 .toggle.on{
   background:linear-gradient(180deg,rgba(0,212,160,0.2),rgba(0,212,160,0.05));
@@ -583,10 +486,7 @@ label:first-child{margin-top:0}
   transition:background .3s, box-shadow .3s;
 }
 .toggle.on .toggle-dot{background:#00d4a0;box-shadow:0 0 8px #00d4a0;animation:pulse 1.5s infinite}
-@keyframes pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(0,212,160,0.6)}
-  50%{box-shadow:0 0 0 6px rgba(0,212,160,0)}
-}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,160,0.6)}50%{box-shadow:0 0 0 6px rgba(0,212,160,0)}}
 
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .stat-card{
@@ -599,44 +499,32 @@ label:first-child{margin-top:0}
 .stat-value{font-size:22px;font-weight:900;color:var(--gold);line-height:1.1}
 .stat-label{font-size:10.5px;color:#a09a8a;margin-top:4px;font-weight:700}
 
-.empty-state{
-  text-align:center;padding:40px 16px;
-  color:#6a6659;
-}
+.empty-state{text-align:center;padding:40px 16px;color:#6a6659}
 .empty-state .big{font-size:48px;margin-bottom:12px;opacity:.6}
 .empty-state .ttl{font-size:14px;font-weight:900;color:#a09a8a;margin-bottom:6px}
 
-/* ============ TOAST ============ */
 .toast{
   position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
   background:linear-gradient(160deg,#1a1820,#0c0b10);
-  border:1px solid rgba(255,196,0,0.4);
-  color:#fff;font-size:13px;font-weight:700;
+  border:1px solid rgba(255,196,0,0.4);color:#fff;font-size:13px;font-weight:700;
   padding:12px 20px;border-radius:14px;
   box-shadow:0 20px 40px -10px rgba(0,0,0,0.9), 0 0 30px -10px rgba(255,196,0,0.4);
   z-index:9999;opacity:0;pointer-events:none;
-  transition:opacity .3s, transform .3s;
-  max-width:88vw;text-align:center;
+  transition:opacity .3s, transform .3s;max-width:88vw;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:rgba(0,212,160,0.5)}
 .toast.error{border-color:rgba(255,77,109,0.5)}
 
-/* ============ CUSTOM MARKERS ============ */
 .kokton-marker{
   display:flex;align-items:center;justify-content:center;
   width:36px;height:36px;border-radius:50%;
-  border:3px solid #fff;
-  font-size:16px;font-weight:900;
+  border:3px solid #fff;font-size:16px;font-weight:900;
   box-shadow:0 0 20px currentColor, 0 4px 12px rgba(0,0,0,0.6);
   animation:markerPop .4s cubic-bezier(.2,.9,.2,1);
 }
-@keyframes markerPop{
-  from{transform:scale(0)}
-  to{transform:scale(1)}
-}
+@keyframes markerPop{from{transform:scale(0)}to{transform:scale(1)}}
 
-/* ============ SCROLLBAR ============ */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,196,0,0.3);border-radius:4px}
@@ -664,18 +552,62 @@ label:first-child{margin-top:0}
   </div>
   <div class="role-title">اختر نوع الدخول</div>
   <div class="role-cards">
-    <button class="role-card" onclick="enterApp('customer')">
+    <button class="role-card" onclick="pickRole('customer')">
       <span class="role-emoji">👤</span>
       <div class="role-name">زبون</div>
       <div class="role-desc">اطلب رحلتك الآن<br>بكل سهولة وأمان</div>
     </button>
-    <button class="role-card driver" onclick="enterApp('driver')">
+    <button class="role-card driver" onclick="pickRole('driver')">
       <span class="role-emoji">🚕</span>
       <div class="role-name">سائق</div>
       <div class="role-desc">استقبل الطلبات<br>واكسب أكثر</div>
     </button>
   </div>
   <div class="role-footer">الإصدار التجريبي • البيانات محلية على جهازك</div>
+</div>
+
+<!-- ===================== AUTH ===================== -->
+<div id="authScreen" class="hidden">
+  <div class="auth-wrap">
+    <div class="role-brand" style="margin-bottom:0">
+      <div class="brand-crown">♛</div>
+      <div class="brand-name">KOKTON</div>
+      <div class="brand-sub" id="authRoleLabel">زبون</div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">دخول</button>
+      <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">حساب جديد</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="authLogin" class="auth-form">
+      <label>رقم الهاتف</label>
+      <input id="loginPhone" class="field" type="tel" inputmode="numeric" placeholder="07XXXXXXXXX" maxlength="11">
+      <label>كلمة السر</label>
+      <input id="loginPassword" class="field" type="password" placeholder="••••••"
+             onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="cta-primary" onclick="doLogin()">دخول</button>
+      <button class="cta-ghost" onclick="switchAuthTab('register')">ما عندك حساب؟ سجل جديد</button>
+    </div>
+
+    <!-- Register form -->
+    <div id="authRegister" class="auth-form hidden">
+      <label>الاسم الكامل</label>
+      <input id="regName" class="field" placeholder="اسمك">
+      <label>رقم الهاتف</label>
+      <input id="regPhone" class="field" type="tel" inputmode="numeric" placeholder="07XXXXXXXXX" maxlength="11">
+      <label>كلمة السر</label>
+      <input id="regPassword" class="field" type="password" placeholder="4 أحرف على الأقل">
+      <label>تأكيد كلمة السر</label>
+      <input id="regPassword2" class="field" type="password" placeholder="أعد كلمة السر"
+             onkeydown="if(event.key==='Enter')doRegister()">
+      <button class="cta-primary" onclick="doRegister()">إنشاء الحساب</button>
+      <button class="cta-ghost" onclick="switchAuthTab('login')">عندك حساب؟ سجل دخول</button>
+    </div>
+
+    <button class="cta-ghost" onclick="backToRolePicker()" style="margin-top:14px">← رجوع</button>
+  </div>
 </div>
 
 <!-- ===================== APP ===================== -->
@@ -692,12 +624,10 @@ label:first-child{margin-top:0}
 
   <main>
 
-    <!-- ========== CUSTOMER HOME ========== -->
+    <!-- CUSTOMER HOME -->
     <section id="c-home" class="screen active">
       <div class="scene-3d">
-        <div class="scene-buildings">
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        </div>
+        <div class="scene-buildings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="scene-road"></div>
         <div class="scene-glow"></div>
         <div class="scene-taxi">🚕</div>
@@ -710,44 +640,34 @@ label:first-child{margin-top:0}
       <p class="muted">شنو تحتاج اليوم؟ اختر الخدمة حتى نحدد موقعك.</p>
       <div class="services-3d">
         <button class="service-3d" onclick="selectService('delivery')">
-          <span class="emoji">🛵</span>
-          <strong>مندوب توصيل</strong>
-          <small>توصيل طلباتك</small>
+          <span class="emoji">🛵</span><strong>مندوب توصيل</strong><small>توصيل طلباتك</small>
         </button>
         <button class="service-3d" onclick="selectService('tuktuk')">
-          <span class="emoji">🛺</span>
-          <strong>تكتك</strong>
-          <small>مشوار سريع</small>
+          <span class="emoji">🛺</span><strong>تكتك</strong><small>مشوار سريع</small>
         </button>
         <button class="service-3d" onclick="selectService('taxi')">
-          <span class="emoji">🚕</span>
-          <strong>تكسي</strong>
-          <small>رحلة مريحة</small>
+          <span class="emoji">🚕</span><strong>تكسي</strong><small>رحلة مريحة</small>
         </button>
       </div>
       <button class="cta-primary" onclick="selectService('taxi')">ابدأ الآن ➜</button>
     </section>
 
-    <!-- ========== CUSTOMER BOOKING ========== -->
+    <!-- CUSTOMER BOOKING -->
     <section id="c-booking" class="screen">
       <div class="section-title" id="bookingTitle">🚕 اطلب تكسي</div>
       <p class="muted">حدد موقع الانطلاق والوجهة على الخريطة.</p>
-
       <div class="map-tabs">
         <button class="map-tab active" data-mode="pickup" onclick="setMapMode('pickup')">📍 الانطلاق</button>
         <button class="map-tab" data-mode="dest" onclick="setMapMode('dest')">🎯 الوجهة</button>
       </div>
       <div id="customerMap"></div>
-
       <div class="formbox" style="margin-top:12px">
         <label>موقع الانطلاق</label>
         <input id="pickup" class="field" placeholder="اضغط على الخريطة أو اكتب العنوان">
         <button class="cta-ghost" onclick="locateMe()" style="margin-top:8px">📍 موقعي الحالي</button>
-
         <label>الوجهة</label>
         <input id="destination" class="field" placeholder="وين تريد تروح؟">
       </div>
-
       <div class="order-card-3d">
         <div class="row">
           <div>
@@ -764,30 +684,31 @@ label:first-child{margin-top:0}
       <button class="cta-ghost" onclick="goScreen('c-home')">رجوع للرئيسية</button>
     </section>
 
-    <!-- ========== CUSTOMER ORDERS ========== -->
+    <!-- CUSTOMER ORDERS -->
     <section id="c-orders" class="screen">
       <div class="section-title">طلباتي</div>
       <p class="muted">تظهر هنا طلباتك وحالة كل طلب بشكل مباشر.</p>
       <div id="customerOrdersList"></div>
     </section>
 
-    <!-- ========== CUSTOMER ACCOUNT ========== -->
+    <!-- CUSTOMER ACCOUNT -->
     <section id="c-account" class="screen">
       <div class="section-title">حسابي</div>
       <div class="formbox">
         <div style="font-size:52px;text-align:center;margin-bottom:8px;filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3))">👤</div>
         <label>الاسم</label>
         <input id="customerName" class="field" placeholder="اكتب اسمك">
-        <label>رقم الهاتف</label>
-        <input id="customerPhone" class="field" type="tel" placeholder="07xxxxxxxxx">
+        <label>رقم الهاتف (تسجيل الدخول)</label>
+        <input id="customerPhone" class="field" type="tel" readonly>
         <button class="cta-primary" onclick="saveCustomerProfile()">حفظ البيانات</button>
       </div>
       <button class="cta-ghost" onclick="switchRole()">تبديل إلى واجهة السائق ⇄</button>
+      <button class="cta-ghost" onclick="logout()" style="color:#ff8a8a;border-color:rgba(255,77,109,0.25)">🚪 تسجيل الخروج</button>
       <button class="cta-ghost" onclick="resetAll()" style="color:#ff4d6d;border-color:rgba(255,77,109,0.25)">مسح كل البيانات</button>
       <p class="muted" id="profileStatus" style="text-align:center;margin-top:12px"></p>
     </section>
 
-    <!-- ========== DRIVER HOME ========== -->
+    <!-- DRIVER HOME -->
     <section id="d-home" class="screen">
       <div class="driver-status">
         <div>
@@ -799,7 +720,6 @@ label:first-child{margin-top:0}
           <span class="toggle-label" id="onlineLabel">غير متصل</span>
         </button>
       </div>
-
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">🚕</div>
@@ -812,88 +732,67 @@ label:first-child{margin-top:0}
           <div class="stat-label">الأرباح (د.ع)</div>
         </div>
       </div>
-
       <div id="driverMap"></div>
-
       <div class="section-title">الطلب الحالي</div>
       <div id="driverCurrentOrder"></div>
     </section>
 
-    <!-- ========== DRIVER ORDERS ========== -->
+    <!-- DRIVER ORDERS -->
     <section id="d-orders" class="screen">
       <div class="section-title">الطلبات المتاحة</div>
       <p class="muted">الطلبات الجديدة من الزبائن. اضغط "قبول" لبدء الرحلة.</p>
       <div id="driverAvailableOrders"></div>
-
       <div class="section-title" style="margin-top:24px">سجل رحلاتي</div>
       <div id="driverHistory"></div>
     </section>
 
-    <!-- ========== DRIVER EARNINGS ========== -->
+    <!-- DRIVER EARNINGS -->
     <section id="d-earnings" class="screen">
       <div class="section-title">الأرباح والإحصائيات</div>
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">💵</div>
-          <div class="stat-value" id="earnTotal">0</div>
-          <div class="stat-label">إجمالي الأرباح</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">📅</div>
-          <div class="stat-value" id="earnToday">0</div>
-          <div class="stat-label">أرباح اليوم</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-value" id="earnTrips">0</div>
-          <div class="stat-label">عدد الرحلات</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⭐</div>
-          <div class="stat-value" id="earnAvg">0</div>
-          <div class="stat-label">متوسط الرحلة</div>
-        </div>
+        <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-value" id="earnTotal">0</div><div class="stat-label">إجمالي الأرباح</div></div>
+        <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="earnToday">0</div><div class="stat-label">أرباح اليوم</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value" id="earnTrips">0</div><div class="stat-label">عدد الرحلات</div></div>
+        <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="earnAvg">0</div><div class="stat-label">متوسط الرحلة</div></div>
       </div>
       <div class="section-title">آخر الرحلات</div>
       <div id="earningsList"></div>
     </section>
 
-    <!-- ========== DRIVER ACCOUNT ========== -->
+    <!-- DRIVER ACCOUNT -->
     <section id="d-account" class="screen">
       <div class="section-title">حساب السائق</div>
       <div class="formbox">
         <div style="font-size:52px;text-align:center;margin-bottom:8px;filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3))">🚕</div>
         <label>اسم السائق</label>
         <input id="driverName" class="field" placeholder="اكتب اسمك">
-        <label>رقم الهاتف</label>
-        <input id="driverPhone" class="field" type="tel" placeholder="07xxxxxxxxx">
+        <label>رقم الهاتف (تسجيل الدخول)</label>
+        <input id="driverPhone" class="field" type="tel" readonly>
         <label>نوع السيارة / اللوحة</label>
         <input id="driverCar" class="field" placeholder="مثلاً: كيا — 12345">
         <button class="cta-primary" onclick="saveDriverProfile()">حفظ بيانات السائق</button>
       </div>
       <button class="cta-ghost" onclick="switchRole()">تبديل إلى واجهة الزبون ⇄</button>
+      <button class="cta-ghost" onclick="logout()" style="color:#ff8a8a;border-color:rgba(255,77,109,0.25)">🚪 تسجيل الخروج</button>
       <button class="cta-ghost" onclick="resetAll()" style="color:#ff4d6d;border-color:rgba(255,77,109,0.25)">مسح كل البيانات</button>
       <p class="muted" id="driverProfileStatus" style="text-align:center;margin-top:12px"></p>
     </section>
 
   </main>
-
   <nav class="bottom" id="bottomNav"></nav>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 /* =========================================================
-   KOKTON — App Logic
+   KOKTON — App Logic (with Auth)
    ========================================================= */
 
-/* ---------- SHORTCUTS ---------- */
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => Number(n).toLocaleString('en-US');
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const haptic = () => { if (navigator.vibrate) try { navigator.vibrate(18); } catch(e){} };
 
-/* ---------- CONSTANTS ---------- */
 const SERVICES = {
   taxi:     { label: 'تكسي 🚕',       rate: 1500, min: 3000, icon: '🚕' },
   tuktuk:   { label: 'تكتك 🛺',       rate: 1000, min: 2000, icon: '🛺' },
@@ -928,12 +827,14 @@ const LS = {
   customer: 'kokton_customer',
   driver:   'kokton_driver',
   driverId: 'kokton_driver_id',
-  online:   'kokton_online'
+  online:   'kokton_online',
+  accounts: 'kokton_accounts'
 };
 
 /* ---------- STATE ---------- */
 const state = {
   role: null,
+  pendingRole: null,
   screen: null,
   service: 'taxi',
   mapMode: 'pickup',
@@ -943,22 +844,84 @@ const state = {
   online: false
 };
 
-/* ---------- STORAGE ---------- */
+/* =========================================================
+   AUTH — Accounts & Session
+   ========================================================= */
+// ⚠️ ملاحظة: هذا hash بسيط للعرض التجريبي فقط.
+// في تطبيق حقيقي استخدم bcrypt / PBKDF2 عبر خدمة خلفية.
+function hashPwd(p) {
+  let h = 0;
+  for (let i = 0; i < p.length; i++) h = ((h << 5) - h + p.charCodeAt(i)) | 0;
+  return 'h' + Math.abs(h).toString(36);
+}
+
+function getAccounts() {
+  try {
+    const raw = localStorage.getItem(LS.accounts);
+    if (!raw) return { customer: {}, driver: {} };
+    const a = JSON.parse(raw);
+    return { customer: a.customer || {}, driver: a.driver || {} };
+  } catch(e) { return { customer: {}, driver: {} }; }
+}
+function setAccounts(a) {
+  try { localStorage.setItem(LS.accounts, JSON.stringify(a)); } catch(e){}
+}
+
+function getSession(role) {
+  try {
+    const phone = sessionStorage.getItem('kokton_phone_' + role);
+    if (!phone) return null;
+    const acc = getAccounts()[role] || {};
+    if (!acc[phone]) return null;
+    return { role, phone };
+  } catch(e) { return null; }
+}
+function setSession(role, phone) {
+  try {
+    sessionStorage.setItem('kokton_phone_' + role, phone);
+    sessionStorage.setItem('kokton_active_role', role);
+  } catch(e){}
+}
+function clearSession(role) {
+  try {
+    if (role) sessionStorage.removeItem('kokton_phone_' + role);
+    else {
+      sessionStorage.removeItem('kokton_phone_customer');
+      sessionStorage.removeItem('kokton_phone_driver');
+    }
+    sessionStorage.removeItem('kokton_active_role');
+  } catch(e){}
+}
+function getActiveRole() {
+  try { return sessionStorage.getItem('kokton_active_role'); } catch(e) { return null; }
+}
+
+function syncProfileFromAccount(role, acc) {
+  const data = { name: acc.name || '', phone: acc.phone || '' };
+  if (role === 'customer') {
+    try { localStorage.setItem(LS.customer, JSON.stringify(data)); } catch(e){}
+  } else {
+    data.car = acc.car || '';
+    try { localStorage.setItem(LS.driver, JSON.stringify(data)); } catch(e){}
+  }
+}
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
 function getOrders() {
-  try { return JSON.parse(localStorage.getItem(LS.orders) || '[]'); }
-  catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem(LS.orders) || '[]'); } catch(e) { return []; }
 }
 function setOrders(list) {
   try { localStorage.setItem(LS.orders, JSON.stringify(list)); } catch(e){}
   broadcastUpdate();
 }
-function getCustomer() {
-  try { return JSON.parse(localStorage.getItem(LS.customer) || '{}'); } catch(e){ return {}; }
-}
-function getDriver() {
-  try { return JSON.parse(localStorage.getItem(LS.driver) || '{}'); } catch(e){ return {}; }
-}
+function getCustomer() { try { return JSON.parse(localStorage.getItem(LS.customer) || '{}'); } catch(e){ return {}; } }
+function getDriver()   { try { return JSON.parse(localStorage.getItem(LS.driver)   || '{}'); } catch(e){ return {}; } }
+
 function getDriverId() {
+  const s = getSession('driver');
+  if (s) return 'driver_' + s.phone;
   let id = null;
   try { id = localStorage.getItem(LS.driverId); } catch(e){}
   if (!id) {
@@ -967,12 +930,8 @@ function getDriverId() {
   }
   return id;
 }
-function getOnline() {
-  try { return localStorage.getItem(LS.online) === '1'; } catch(e){ return false; }
-}
-function setOnline(v) {
-  try { localStorage.setItem(LS.online, v ? '1' : '0'); } catch(e){}
-}
+function getOnline() { try { return localStorage.getItem(LS.online) === '1'; } catch(e){ return false; } }
+function setOnline(v) { try { localStorage.setItem(LS.online, v ? '1' : '0'); } catch(e){} }
 
 /* ---------- BROADCAST ---------- */
 let bc = null;
@@ -982,9 +941,7 @@ try {
     bc.onmessage = () => refreshFromStorage();
   }
 } catch(e){}
-function broadcastUpdate() {
-  if (bc) try { bc.postMessage('update'); } catch(e){}
-}
+function broadcastUpdate() { if (bc) try { bc.postMessage('update'); } catch(e){} }
 
 /* ---------- TOAST ---------- */
 let toastTimer = null;
@@ -1006,10 +963,8 @@ function toast(msg, type = 'info') {
 /* ---------- UTIL ---------- */
 function haversine(a, b) {
   if (!a || !b) return null;
-  const R = 6371;
-  const toRad = d => d * Math.PI / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
   const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
   const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
@@ -1017,11 +972,12 @@ function haversine(a, b) {
 function calcPrice(service, km) {
   if (!km || km <= 0) return null;
   const s = SERVICES[service];
-  const raw = km * s.rate;
-  return Math.max(s.min, Math.round(raw / 250) * 250);
+  return Math.max(s.min, Math.round((km * s.rate) / 250) * 250);
 }
 
-/* ---------- SPLASH ---------- */
+/* =========================================================
+   SPLASH
+   ========================================================= */
 function buildParticles() {
   const wrap = $('particles');
   if (!wrap) return;
@@ -1042,36 +998,150 @@ function initSplash() {
   buildParticles();
   setTimeout(() => {
     $('splash').classList.add('done');
-    const rp = $('rolePicker');
-    rp.classList.remove('hidden');
-    setTimeout(() => rp.classList.add('done'), 60);
-    setTimeout(() => rp.classList.add('hidden'), 600);
-    // Auto-enter saved role
-    try {
-      const saved = sessionStorage.getItem('kokton_role');
-      if (saved === 'customer' || saved === 'driver') {
-        enterApp(saved);
-      } else {
-        showRolePicker();
-      }
-    } catch(e) { showRolePicker(); }
-  }, 3200);
+
+    // ✅ الحل الصحيح: قرار واحد فقط — لا setTimeouts متعارضة
+    const activeRole = getActiveRole();
+    if (activeRole && getSession(activeRole)) {
+      enterApp(activeRole);
+    } else {
+      showRolePicker();
+    }
+  }, 2600);
 }
 
 function showRolePicker() {
+  $('app').classList.add('hidden');
+  $('authScreen').classList.add('hidden');
   const rp = $('rolePicker');
-  rp.classList.remove('hidden', 'done');
+  rp.classList.remove('hidden');
+  // force reflow ثم أزل done عشان تعمل transition سلسة
+  void rp.offsetWidth;
+  rp.classList.remove('done');
 }
 
+function hideRolePicker() {
+  const rp = $('rolePicker');
+  rp.classList.add('done');
+  setTimeout(() => rp.classList.add('hidden'), 500);
+}
+
+/* =========================================================
+   AUTH FLOW
+   ========================================================= */
+function pickRole(role) {
+  haptic();
+  state.pendingRole = role;
+  if (getSession(role)) {
+    enterApp(role);
+  } else {
+    showAuth(role);
+  }
+}
+
+function showAuth(role) {
+  state.pendingRole = role;
+  hideRolePicker();
+  $('app').classList.add('hidden');
+
+  const auth = $('authScreen');
+  auth.classList.remove('hidden');
+  $('authRoleLabel').textContent = role === 'customer' ? 'زبون' : 'سائق';
+
+  // امسح الحقول
+  ['loginPhone','loginPassword','regName','regPhone','regPassword','regPassword2']
+    .forEach(id => { const el = $(id); if (el) el.value = ''; });
+
+  switchAuthTab('login');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab)
+  );
+  $('authLogin').classList.toggle('hidden', tab !== 'login');
+  $('authRegister').classList.toggle('hidden', tab !== 'register');
+}
+
+function backToRolePicker() {
+  $('authScreen').classList.add('hidden');
+  showRolePicker();
+}
+
+function doLogin() {
+  const phone = $('loginPhone').value.trim();
+  const password = $('loginPassword').value;
+  const role = state.pendingRole;
+
+  if (!phone) { toast('اكتب رقم الهاتف', 'error'); return; }
+  if (!password) { toast('اكتب كلمة السر', 'error'); return; }
+
+  const acc = (getAccounts()[role] || {})[phone];
+  if (!acc) { toast('رقم الهاتف غير مسجل', 'error'); return; }
+  if (acc.password !== hashPwd(password)) { toast('كلمة السر غير صحيحة', 'error'); return; }
+
+  setSession(role, phone);
+  syncProfileFromAccount(role, acc);
+  haptic();
+  toast('✅ مرحباً ' + acc.name, 'success');
+  setTimeout(() => enterApp(role), 400);
+}
+
+function doRegister() {
+  const name = $('regName').value.trim();
+  const phone = $('regPhone').value.trim();
+  const password = $('regPassword').value;
+  const password2 = $('regPassword2').value;
+  const role = state.pendingRole;
+
+  if (!name) { toast('اكتب اسمك', 'error'); return; }
+  if (!/^07\d{9}$/.test(phone)) { toast('رقم الهاتف لازم يبدأ بـ 07 و 11 رقم', 'error'); return; }
+  if (password.length < 4) { toast('كلمة السر لازم 4 أحرف على الأقل', 'error'); return; }
+  if (password !== password2) { toast('كلمتا السر غير متطابقتين', 'error'); return; }
+
+  const accounts = getAccounts();
+  if (!accounts[role]) accounts[role] = {};
+  if (accounts[role][phone]) { toast('هذا الرقم مسجل مسبقاً — جرب تسجيل دخول', 'error'); return; }
+
+  accounts[role][phone] = {
+    name, phone,
+    password: hashPwd(password),
+    createdAt: Date.now()
+  };
+  setAccounts(accounts);
+  setSession(role, phone);
+  syncProfileFromAccount(role, accounts[role][phone]);
+
+  haptic();
+  toast('✅ تم إنشاء الحساب', 'success');
+  setTimeout(() => enterApp(role), 400);
+}
+
+function logout() {
+  if (!confirm('هل تريد تسجيل الخروج؟')) return;
+  clearSession(state.role);
+  state.role = null;
+  $('app').classList.add('hidden');
+  showRolePicker();
+  toast('تم تسجيل الخروج', 'info');
+}
+
+/* =========================================================
+   APP ENTRY
+   ========================================================= */
 function enterApp(role) {
-  try { sessionStorage.setItem('kokton_role', role); } catch(e){}
   state.role = role;
-  $('rolePicker').classList.add('done', 'hidden');
+  state.pendingRole = null;
+
+  hideRolePicker();
+  $('authScreen').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('roleTag').textContent = role === 'customer' ? 'زبون' : 'سائق';
+
   renderNav();
   const first = role === 'customer' ? 'c-home' : 'd-home';
   goScreen(first);
+
   if (role === 'driver') {
     state.driverId = getDriverId();
     state.online = getOnline();
@@ -1083,11 +1153,20 @@ function enterApp(role) {
 function switchRole() {
   haptic();
   const newRole = state.role === 'customer' ? 'driver' : 'customer';
-  enterApp(newRole);
-  toast(newRole === 'customer' ? 'تم التبديل إلى واجهة الزبون' : 'تم التبديل إلى واجهة السائق', 'success');
+  if (getSession(newRole)) {
+    enterApp(newRole);
+    toast('تم التبديل إلى واجهة ' + (newRole === 'customer' ? 'الزبون' : 'السائق'), 'success');
+  } else {
+    // محتاج تسجيل دخول للدور الآخر
+    state.pendingRole = newRole;
+    $('app').classList.add('hidden');
+    showAuth(newRole);
+  }
 }
 
-/* ---------- NAV ---------- */
+/* =========================================================
+   NAV
+   ========================================================= */
 function renderNav() {
   const nav = $('bottomNav');
   const items = ROLE_NAV[state.role] || [];
@@ -1097,27 +1176,21 @@ function renderNav() {
     </button>`
   ).join('');
 }
-
 function updateNavActive() {
   document.querySelectorAll('.nav').forEach(n => {
     n.classList.toggle('active', n.dataset.screen === state.screen);
   });
 }
 
-/* ---------- SCREEN ---------- */
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
   state.screen = id;
   updateNavActive();
 
-  if (id === 'c-booking') {
-    setTimeout(() => { initCustomerMap(); if (customerMap) customerMap.invalidateSize(); }, 200);
-  }
-  if (id === 'd-home') {
-    setTimeout(() => { initDriverMap(); if (driverMap) driverMap.invalidateSize(); renderDriverHome(); }, 200);
-  }
-  if (id === 'c-orders') renderCustomerOrders();
-  if (id === 'd-orders') renderDriverOrders();
+  if (id === 'c-booking') setTimeout(() => { initCustomerMap(); if (customerMap) customerMap.invalidateSize(); }, 200);
+  if (id === 'd-home')    setTimeout(() => { initDriverMap();   if (driverMap)   driverMap.invalidateSize();   renderDriverHome(); }, 200);
+  if (id === 'c-orders')  renderCustomerOrders();
+  if (id === 'd-orders')  renderDriverOrders();
   if (id === 'd-earnings') renderEarnings();
   if (id === 'c-account') loadCustomerProfileForm();
   if (id === 'd-account') loadDriverProfileForm();
@@ -1128,7 +1201,6 @@ function goScreen(id) {
 /* =========================================================
    CUSTOMER
    ========================================================= */
-
 function selectService(s) {
   haptic();
   state.service = s;
@@ -1138,7 +1210,6 @@ function selectService(s) {
   goScreen('c-booking');
 }
 
-/* ---------- CUSTOMER MAP ---------- */
 let customerMap = null;
 let cPickupMarker = null, cDestMarker = null, cRouteLine = null;
 
@@ -1152,8 +1223,7 @@ function initCustomerMap() {
     .setView([31.05, 46.26], 13);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    maxZoom: 19, attribution: '© OpenStreetMap'
   }).addTo(customerMap);
 
   customerMap.on('click', (e) => onCustomerMapClick(e.latlng));
@@ -1178,9 +1248,7 @@ function onCustomerMapClick(latlng) {
 
 function setMapMode(mode) {
   state.mapMode = mode;
-  document.querySelectorAll('.map-tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.mode === mode)
-  );
+  document.querySelectorAll('.map-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
 }
 
 function locateMe() {
@@ -1207,8 +1275,7 @@ function makeIcon(color, text) {
   return L.divIcon({
     className: '',
     html: `<div class="kokton-marker" style="background:${color};color:#fff;box-shadow:0 0 20px ${color},0 4px 12px rgba(0,0,0,0.6)">${text}</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18]
+    iconSize: [36, 36], iconAnchor: [18, 18]
   });
 }
 
@@ -1216,12 +1283,10 @@ function updateRouteLine() {
   if (!customerMap) return;
   if (cRouteLine) { customerMap.removeLayer(cRouteLine); cRouteLine = null; }
   if (state.pickupCoords && state.destCoords) {
-    cRouteLine = L.polyline([
-      [state.pickupCoords.lat, state.pickupCoords.lng],
-      [state.destCoords.lat, state.destCoords.lng]
-    ], {
-      color: '#ffd24a', weight: 3, opacity: 0.8, dashArray: '8 8'
-    }).addTo(customerMap);
+    cRouteLine = L.polyline(
+      [[state.pickupCoords.lat, state.pickupCoords.lng], [state.destCoords.lat, state.destCoords.lng]],
+      { color: '#ffd24a', weight: 3, opacity: 0.8, dashArray: '8 8' }
+    ).addTo(customerMap);
     try { customerMap.fitBounds(cRouteLine.getBounds(), { padding: [40, 40] }); } catch(e){}
   }
 }
@@ -1242,7 +1307,6 @@ function updatePricePreview() {
   }
 }
 
-/* ---------- SUBMIT ORDER ---------- */
 function submitOrder() {
   const pickup = $('pickup').value.trim();
   const dest = $('destination').value.trim();
@@ -1253,26 +1317,21 @@ function submitOrder() {
   const km = haversine(state.pickupCoords, state.destCoords);
   const price = calcPrice(state.service, km);
   const cust = getCustomer();
+  const session = getSession('customer');
 
   const order = {
     id: 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
     service: state.service,
     serviceLabel: SERVICES[state.service].label,
     customerName: cust.name || 'زبون',
-    customerPhone: cust.phone || '',
-    pickup: pickup,
-    pickupCoords: state.pickupCoords,
-    dest: dest,
-    destCoords: state.destCoords,
+    customerPhone: cust.phone || (session ? session.phone : ''),
+    pickup, pickupCoords: state.pickupCoords,
+    dest,   destCoords:   state.destCoords,
     distanceKm: km ? Number(km.toFixed(2)) : null,
     price: price,
     status: 'pending',
-    driverId: null,
-    driverName: null,
-    driverPhone: null,
-    driverCar: null,
-    createdAt: Date.now(),
-    updatedAt: Date.now()
+    driverId: null, driverName: null, driverPhone: null, driverCar: null,
+    createdAt: Date.now(), updatedAt: Date.now()
   };
 
   const list = getOrders();
@@ -1281,24 +1340,28 @@ function submitOrder() {
   haptic();
   toast('✅ تم إرسال طلبك — بانتظار سائق', 'success');
 
-  // reset
   state.pickupCoords = null;
   state.destCoords = null;
   $('pickup').value = '';
   $('destination').value = '';
   if (cPickupMarker && customerMap) { customerMap.removeLayer(cPickupMarker); cPickupMarker = null; }
-  if (cDestMarker && customerMap) { customerMap.removeLayer(cDestMarker); cDestMarker = null; }
-  if (cRouteLine && customerMap) { customerMap.removeLayer(cRouteLine); cRouteLine = null; }
+  if (cDestMarker && customerMap)   { customerMap.removeLayer(cDestMarker);   cDestMarker = null; }
+  if (cRouteLine && customerMap)    { customerMap.removeLayer(cRouteLine);    cRouteLine = null; }
   updatePricePreview();
 
   setTimeout(() => goScreen('c-orders'), 400);
 }
 
-/* ---------- CUSTOMER ORDERS LIST ---------- */
 function renderCustomerOrders() {
   const el = $('customerOrdersList');
   if (!el) return;
-  const list = getOrders();
+  const session = getSession('customer');
+  const all = getOrders();
+  // ✅ فلترة: زبون يشوف طلباته فقط
+  const list = session && session.phone
+    ? all.filter(o => !o.customerPhone || o.customerPhone === session.phone)
+    : all;
+
   if (!list.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="big">🚕</div>
@@ -1307,6 +1370,7 @@ function renderCustomerOrders() {
     </div>`;
     return;
   }
+
   el.innerHTML = list.map(o => {
     const st = STATUS[o.status] || STATUS.pending;
     const driverInfo = o.driverName ? `
@@ -1354,11 +1418,8 @@ function cancelOrder(id) {
 /* =========================================================
    DRIVER
    ========================================================= */
-
 function updateOnlineUI() {
-  const t = $('onlineToggle');
-  const l = $('onlineLabel');
-  const sub = $('onlineSub');
+  const t = $('onlineToggle'), l = $('onlineLabel'), sub = $('onlineSub');
   if (!t) return;
   t.classList.toggle('on', state.online);
   l.textContent = state.online ? 'متصل' : 'غير متصل';
@@ -1376,24 +1437,13 @@ function toggleOnline() {
 }
 
 function getActiveDriverOrder(list) {
-  return list.find(o =>
-    o.driverId === state.driverId &&
-    ['accepted', 'arrived', 'ongoing'].includes(o.status)
-  ) || null;
+  return list.find(o => o.driverId === state.driverId && ['accepted','arrived','ongoing'].includes(o.status)) || null;
 }
-
-function getAvailableOrders(list) {
-  return list.filter(o => o.status === 'pending');
-}
-
+function getAvailableOrders(list) { return list.filter(o => o.status === 'pending'); }
 function getDriverHistory(list) {
-  return list.filter(o =>
-    o.driverId === state.driverId &&
-    ['completed', 'cancelled'].includes(o.status)
-  );
+  return list.filter(o => o.driverId === state.driverId && ['completed','cancelled'].includes(o.status));
 }
 
-/* ---------- DRIVER HOME ---------- */
 let driverMap = null;
 let dPickupMarker = null, dDestMarker = null, dRouteLine = null;
 
@@ -1405,8 +1455,7 @@ function initDriverMap() {
   }
   driverMap = L.map('driverMap', { zoomControl: true }).setView([31.05, 46.26], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    maxZoom: 19, attribution: '© OpenStreetMap'
   }).addTo(driverMap);
 }
 
@@ -1414,13 +1463,11 @@ function renderDriverHome() {
   const list = getOrders();
   const active = getActiveDriverOrder(list);
 
-  // stats
   const history = list.filter(o => o.driverId === state.driverId && o.status === 'completed');
   const earnings = history.reduce((s, o) => s + (Number(o.price) || 0), 0);
-  if ($('statTrips')) $('statTrips').textContent = history.length;
+  if ($('statTrips'))    $('statTrips').textContent = history.length;
   if ($('statEarnings')) $('statEarnings').textContent = fmt(earnings);
 
-  // active order card
   const wrap = $('driverCurrentOrder');
   if (!wrap) return;
   if (!active) {
@@ -1436,8 +1483,8 @@ function renderDriverHome() {
   const st = STATUS[active.status] || STATUS.pending;
   let nextBtn = '';
   if (active.status === 'accepted') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')">وصلت لموقع الزبون</button>`;
-  if (active.status === 'arrived') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')">بدء الرحلة</button>`;
-  if (active.status === 'ongoing') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')" style="background:linear-gradient(180deg,#00d4a0,#009968);box-shadow:0 4px 0 #006e4d">إنهاء الرحلة</button>`;
+  if (active.status === 'arrived')  nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')">بدء الرحلة</button>`;
+  if (active.status === 'ongoing')  nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')" style="background:linear-gradient(180deg,#00d4a0,#009968);box-shadow:0 4px 0 #006e4d">إنهاء الرحلة</button>`;
 
   wrap.innerHTML = `<div class="order-item">
     <div class="order-head">
@@ -1446,7 +1493,7 @@ function renderDriverHome() {
     </div>
     <div class="order-meta">
       <div>👤 الزبون: <b>${esc(active.customerName)}</b></div>
-      ${active.customerPhone ? `<div>📞 ${esc(active.customerPhone)}</div>` : ''}
+      ${active.customerPhone ? `<div>📞 <a href="tel:${esc(active.customerPhone)}" style="color:#ffd24a">${esc(active.customerPhone)}</a></div>` : ''}
       <div>📍 من: <b>${esc(active.pickup)}</b></div>
       <div>🎯 إلى: <b>${esc(active.dest)}</b></div>
       ${active.distanceKm ? `<div>المسافة: <b>${active.distanceKm} كم</b></div>` : ''}
@@ -1461,55 +1508,42 @@ function renderDriverHome() {
 function clearDriverMarkers() {
   if (!driverMap) return;
   if (dPickupMarker) { driverMap.removeLayer(dPickupMarker); dPickupMarker = null; }
-  if (dDestMarker) { driverMap.removeLayer(dDestMarker); dDestMarker = null; }
-  if (dRouteLine) { driverMap.removeLayer(dRouteLine); dRouteLine = null; }
+  if (dDestMarker)   { driverMap.removeLayer(dDestMarker);   dDestMarker = null; }
+  if (dRouteLine)    { driverMap.removeLayer(dRouteLine);    dRouteLine = null; }
 }
 
 function updateDriverMap(order) {
-  if (!driverMap) { initDriverMap(); }
+  if (!driverMap) initDriverMap();
   if (!driverMap) return;
   clearDriverMarkers();
 
-  const p = order.pickupCoords;
-  const d = order.destCoords;
-
-  if (p) {
-    dPickupMarker = L.marker([p.lat, p.lng], { icon: makeIcon('#00d4a0', 'A') }).addTo(driverMap);
-  }
-  if (d) {
-    dDestMarker = L.marker([d.lat, d.lng], { icon: makeIcon('#ff4d6d', 'B') }).addTo(driverMap);
-  }
+  const p = order.pickupCoords, d = order.destCoords;
+  if (p) dPickupMarker = L.marker([p.lat, p.lng], { icon: makeIcon('#00d4a0', 'A') }).addTo(driverMap);
+  if (d) dDestMarker   = L.marker([d.lat, d.lng], { icon: makeIcon('#ff4d6d', 'B') }).addTo(driverMap);
   if (p && d) {
     dRouteLine = L.polyline([[p.lat, p.lng], [d.lat, d.lng]], {
       color: '#ffd24a', weight: 3, opacity: 0.85, dashArray: '8 8'
     }).addTo(driverMap);
     try { driverMap.fitBounds(dRouteLine.getBounds(), { padding: [40, 40] }); } catch(e){}
-  } else if (p) {
-    driverMap.setView([p.lat, p.lng], 15);
-  } else if (d) {
-    driverMap.setView([d.lat, d.lng], 15);
-  }
+  } else if (p) driverMap.setView([p.lat, p.lng], 15);
+  else if (d)   driverMap.setView([d.lat, d.lng], 15);
 }
 
-/* ---------- DRIVER ORDERS ---------- */
 function renderDriverOrders() {
   const list = getOrders();
   const avail = getAvailableOrders(list);
   const history = getDriverHistory(list);
 
-  // available
   const availEl = $('driverAvailableOrders');
   if (availEl) {
     if (!state.online) {
       availEl.innerHTML = `<div class="empty-state" style="padding:26px 16px">
-        <div class="big">🔴</div>
-        <div class="ttl">أنت غير متصل</div>
+        <div class="big">🔴</div><div class="ttl">أنت غير متصل</div>
         <div>فعّل الاتصال من الرئيسية لاستقبال الطلبات</div>
       </div>`;
     } else if (!avail.length) {
       availEl.innerHTML = `<div class="empty-state" style="padding:26px 16px">
-        <div class="big">⏳</div>
-        <div class="ttl">لا توجد طلبات حالياً</div>
+        <div class="big">⏳</div><div class="ttl">لا توجد طلبات حالياً</div>
         <div>سيظهر هنا أي طلب جديد من الزبائن</div>
       </div>`;
     } else {
@@ -1535,13 +1569,11 @@ function renderDriverOrders() {
     }
   }
 
-  // history
   const histEl = $('driverHistory');
   if (histEl) {
     if (!history.length) {
       histEl.innerHTML = `<div class="empty-state" style="padding:22px 16px">
-        <div class="big">📋</div>
-        <div class="ttl">ما عندك رحلات سابقة بعد</div>
+        <div class="big">📋</div><div class="ttl">ما عندك رحلات سابقة بعد</div>
       </div>`;
     } else {
       histEl.innerHTML = history.slice(0, 10).map(o => {
@@ -1551,9 +1583,7 @@ function renderDriverOrders() {
             <span class="order-service">${o.serviceLabel}</span>
             <span class="status-badge ${st.cls}">${st.label}</span>
           </div>
-          <div class="order-meta">
-            <div>📍 ${esc(o.pickup)} → 🎯 ${esc(o.dest)}</div>
-          </div>
+          <div class="order-meta"><div>📍 ${esc(o.pickup)} → 🎯 ${esc(o.dest)}</div></div>
           ${o.price ? `<div class="order-price">${fmt(o.price)} د.ع</div>` : ''}
         </div>`;
       }).join('');
@@ -1574,11 +1604,7 @@ function acceptOrder(id) {
   o.updatedAt = Date.now();
   setOrders(list);
 
-  if (!state.online) {
-    state.online = true;
-    setOnline(true);
-    updateOnlineUI();
-  }
+  if (!state.online) { state.online = true; setOnline(true); updateOnlineUI(); }
 
   haptic();
   toast('✅ تم قبول الطلب — توجه لموقع الزبون', 'success');
@@ -1613,28 +1639,25 @@ function advanceDriverOrder(id) {
   if (next === 'completed') renderEarnings();
 }
 
-/* ---------- EARNINGS ---------- */
 function renderEarnings() {
   const list = getOrders();
   const completed = list.filter(o => o.driverId === state.driverId && o.status === 'completed');
   const total = completed.reduce((s, o) => s + (Number(o.price) || 0), 0);
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const todayEarn = completed
-    .filter(o => o.updatedAt >= today.getTime())
+  const todayEarn = completed.filter(o => o.updatedAt >= today.getTime())
     .reduce((s, o) => s + (Number(o.price) || 0), 0);
   const avg = completed.length ? Math.round(total / completed.length) : 0;
 
   if ($('earnTotal')) $('earnTotal').textContent = fmt(total);
   if ($('earnToday')) $('earnToday').textContent = fmt(todayEarn);
   if ($('earnTrips')) $('earnTrips').textContent = completed.length;
-  if ($('earnAvg')) $('earnAvg').textContent = fmt(avg);
+  if ($('earnAvg'))   $('earnAvg').textContent   = fmt(avg);
 
   const el = $('earningsList');
   if (!el) return;
   if (!completed.length) {
     el.innerHTML = `<div class="empty-state" style="padding:22px 16px">
-      <div class="big">💰</div>
-      <div class="ttl">لا توجد رحلات مكتملة بعد</div>
+      <div class="big">💰</div><div class="ttl">لا توجد رحلات مكتملة بعد</div>
     </div>`;
     return;
   }
@@ -1657,17 +1680,26 @@ function renderEarnings() {
    ========================================================= */
 function loadCustomerProfileForm() {
   const c = getCustomer();
-  if ($('customerName')) $('customerName').value = c.name || '';
+  if ($('customerName'))  $('customerName').value = c.name || '';
   if ($('customerPhone')) $('customerPhone').value = c.phone || '';
   if ($('profileStatus')) $('profileStatus').textContent = c.name ? 'البيانات محفوظة على جهازك' : '';
 }
 
 function saveCustomerProfile() {
   const data = {
-    name: ($('customerName').value || '').trim(),
+    name:  ($('customerName').value || '').trim(),
     phone: ($('customerPhone').value || '').trim()
   };
   try { localStorage.setItem(LS.customer, JSON.stringify(data)); } catch(e){}
+
+  // ✅ مزامنة الاسم مع الحساب
+  const session = getSession('customer');
+  if (session) {
+    const accounts = getAccounts();
+    const acc = accounts.customer && accounts.customer[session.phone];
+    if (acc) { acc.name = data.name; setAccounts(accounts); }
+  }
+
   if ($('profileStatus')) $('profileStatus').textContent = '✅ تم حفظ بياناتك';
   haptic();
   toast('✅ تم حفظ البيانات', 'success');
@@ -1675,31 +1707,38 @@ function saveCustomerProfile() {
 
 function loadDriverProfileForm() {
   const d = getDriver();
-  if ($('driverName')) $('driverName').value = d.name || '';
+  if ($('driverName'))  $('driverName').value = d.name || '';
   if ($('driverPhone')) $('driverPhone').value = d.phone || '';
-  if ($('driverCar')) $('driverCar').value = d.car || '';
+  if ($('driverCar'))   $('driverCar').value  = d.car  || '';
   if ($('driverProfileStatus')) $('driverProfileStatus').textContent = d.name ? 'البيانات محفوظة على جهازك' : '';
 }
 
 function saveDriverProfile() {
   const data = {
-    name: ($('driverName').value || '').trim(),
+    name:  ($('driverName').value || '').trim(),
     phone: ($('driverPhone').value || '').trim(),
-    car: ($('driverCar').value || '').trim()
+    car:   ($('driverCar').value  || '').trim()
   };
   try { localStorage.setItem(LS.driver, JSON.stringify(data)); } catch(e){}
+
+  const session = getSession('driver');
+  if (session) {
+    const accounts = getAccounts();
+    const acc = accounts.driver && accounts.driver[session.phone];
+    if (acc) { acc.name = data.name; acc.car = data.car; setAccounts(accounts); }
+  }
+
   if ($('driverProfileStatus')) $('driverProfileStatus').textContent = '✅ تم حفظ بيانات السائق';
   haptic();
   toast('✅ تم حفظ بيانات السائق', 'success');
   renderDriverHome();
 }
 
-/* ---------- RESET ---------- */
 function resetAll() {
   if (!confirm('هل تريد مسح كل البيانات (الطلبات، الحسابات، السجل)؟')) return;
   try {
     Object.values(LS).forEach(k => localStorage.removeItem(k));
-    sessionStorage.removeItem('kokton_role');
+    sessionStorage.clear();
   } catch(e){}
   broadcastUpdate();
   toast('تم مسح كل البيانات', 'info');
@@ -1717,12 +1756,10 @@ function refreshFromStorage(force = false) {
   lastOrdersJSON = str;
 
   if (!state.role) return;
-
   if (state.screen === 'c-orders') renderCustomerOrders();
-  if (state.screen === 'c-home' && state.role === 'customer') { /* no-op */ }
   if (state.role === 'driver') {
     renderDriverHome();
-    if (state.screen === 'd-orders') renderDriverOrders();
+    if (state.screen === 'd-orders')   renderDriverOrders();
     if (state.screen === 'd-earnings') renderEarnings();
   }
 }
