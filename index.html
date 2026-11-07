@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#050507">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>KOKTON — تكسي العاصمة</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* =========================================================
+   KOKTON — Cinematic Luxury Taxi App
+   Single-file build — save as index.html → upload to GitHub Pages
+   ========================================================= */
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:#050507;
+  color:#fff;
+  font-family:-apple-system,'SF Arabic','Segoe UI',Tahoma,Arial,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  user-select:none;
+}
+input,textarea{user-select:text;font-family:inherit}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+:root{
+  --gold:#ffd24a;
+  --gold-2:#ffb800;
+  --gold-3:#8a6200;
+  --gold-light:#fff3b0;
+  --bg:#050507;
+  --bg-2:#0a0a0f;
+  --panel:#121116;
+  --panel-2:#1a1820;
+  --border:rgba(255,196,0,0.18);
+  --border-2:rgba(255,255,255,0.08);
+  --text:#ffffff;
+  --muted:#a09a8a;
+  --success:#00d4a0;
+  --danger:#ff4d6d;
+  --info:#4ea1ff;
+  --purple:#7c5cff;
+  --shadow-gold:0 12px 30px -10px rgba(255,196,0,0.35);
+  --shadow-dark:0 24px 50px -20px rgba(0,0,0,0.95);
+  --radius:22px;
+  --radius-sm:14px;
+}
+
+/* ============ UTILITIES ============ */
+.hidden{display:none!important}
+.gold-text{
+  background:linear-gradient(180deg,#fff3b0 0%,#ffd24a 30%,#d49800 65%,#8a6200 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 2px 8px rgba(255,196,0,0.35));
+}
+
+/* ============ SPLASH ============ */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255,196,0,0.18) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, #14110a 0%, #050507 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+  transition:opacity .8s ease, visibility .8s ease;
+}
+#splash.done{opacity:0;visibility:hidden}
+.splash-orb{
+  position:absolute;width:340px;height:340px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,196,0,0.22) 0%,transparent 65%);
+  filter:blur(30px);
+  animation:orbPulse 3s ease-in-out infinite;
+}
+@keyframes orbPulse{
+  0%,100%{transform:scale(1);opacity:.7}
+  50%{transform:scale(1.2);opacity:1}
+}
+.splash-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{
+  position:absolute;bottom:-10px;border-radius:50%;
+  background:radial-gradient(circle,#ffd24a 0%,transparent 70%);
+  animation:floatUp linear infinite;opacity:0;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) scale(.5);opacity:0}
+  10%{opacity:.9}
+  100%{transform:translateY(-110vh) scale(1.4);opacity:0}
+}
+.splash-logo{
+  position:relative;z-index:2;
+  font-size:clamp(48px,15vw,72px);
+  font-weight:900;letter-spacing:8px;
+  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0,#ffd24a,#8a6200);
+  background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 30px rgba(255,196,0,0.6));
+  animation:logoReveal 1.6s cubic-bezier(.2,.9,.2,1) forwards, shimmer 3s linear 1s infinite;
+  transform:scale(.3) rotateX(40deg);opacity:0;
+}
+@keyframes logoReveal{
+  to{transform:scale(1) rotateX(0);opacity:1}
+}
+@keyframes shimmer{
+  from{background-position:200% 0}
+  to{background-position:-200% 0}
+}
+.splash-sub{
+  position:relative;z-index:2;margin-top:6px;
+  font-size:15px;letter-spacing:4px;color:#ffd24a;font-weight:700;
+  animation:fadeInUp .8s ease 1.4s forwards;opacity:0;
+}
+.splash-line{
+  position:relative;z-index:2;margin-top:24px;
+  width:120px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,#ffd24a,transparent);
+  animation:lineGrow 1.2s ease 1.8s forwards;opacity:0;transform:scaleX(0);
+}
+@keyframes lineGrow{to{transform:scaleX(1);opacity:1}}
+.splash-tag{
+  position:relative;z-index:2;margin-top:18px;
+  font-size:12px;color:#a09a8a;letter-spacing:2px;
+  animation:fadeInUp .8s ease 2.2s forwards;opacity:0;
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.splash-progress{
+  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  width:160px;height:3px;border-radius:3px;background:rgba(255,196,0,0.12);overflow:hidden;
+  animation:fadeInUp .6s ease 1s forwards;opacity:0;
+}
+.splash-progress::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0);
+  border-radius:3px;
+  animation:progressFill 2.8s cubic-bezier(.6,.05,.3,.95) forwards;
+  transform-origin:right;transform:scaleX(0);
+}
+@keyframes progressFill{to{transform:scaleX(1)}}
+
+/* ============ ROLE PICKER ============ */
+#rolePicker{
+  position:fixed;inset:0;z-index:9000;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,196,0,0.10) 0%, transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(124,92,255,0.06) 0%, transparent 60%),
+    #050507;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+  transition:opacity .5s ease, visibility .5s ease;
+}
+#rolePicker.done{opacity:0;visibility:hidden}
+.role-brand{text-align:center;margin-bottom:8px}
+.brand-crown{
+  font-size:44px;color:var(--gold);
+  filter:drop-shadow(0 0 20px rgba(255,196,0,0.6));
+  animation:floatY 3s ease-in-out infinite;
+}
+@keyframes floatY{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.brand-name{
+  font-size:52px;font-weight:900;letter-spacing:6px;
+  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0,#ffd24a,#8a6200);
+  background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 24px rgba(255,196,0,0.4));
+  animation:shimmer 4s linear infinite;
+  line-height:1.1;
+}
+.brand-sub{font-size:14px;color:#ffd24a;letter-spacing:4px;margin-top:4px;font-weight:700}
+.role-title{
+  margin:32px 0 16px;font-size:15px;color:#a09a8a;letter-spacing:2px;
+}
+.role-cards{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:420px;
+}
+.role-card{
+  position:relative;padding:24px 14px;
+  background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  text-align:center;color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 20px 40px -20px rgba(0,0,0,0.95),
+    0 0 0 1px rgba(255,196,0,0.04);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s;
+  overflow:hidden;
+}
+.role-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(160deg,transparent 30%,rgba(255,196,0,0.10) 50%,transparent 70%);
+  transform:translateX(-100%);transition:transform .6s;
+}
+.role-card:hover{border-color:rgba(255,196,0,0.5);transform:translateY(-4px)}
+.role-card:hover::before{transform:translateX(100%)}
+.role-card:active{transform:scale(.97)}
+.role-card.driver{
+  background:linear-gradient(160deg,#22190a 0%,#0f0c05 100%);
+  border-color:rgba(255,196,0,0.32);
+}
+.role-emoji{
+  font-size:48px;margin-bottom:10px;display:block;
+  filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3));
+}
+.role-name{font-size:18px;font-weight:900;color:var(--gold);margin-bottom:4px;position:relative;z-index:1}
+.role-desc{font-size:11px;color:#a09a8a;line-height:1.5;position:relative;z-index:1}
+.role-footer{
+  position:absolute;bottom:20px;font-size:10px;color:#5a554a;letter-spacing:1px;
+}
+
+/* ============ APP SHELL ============ */
+#app{
+  max-width:520px;min-height:100vh;margin:0 auto;position:relative;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,196,0,0.06) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(124,92,255,0.04) 0%, transparent 50%),
+    #050507;
+  overflow:hidden;
+  animation:fadeIn .5s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.top{
+  position:sticky;top:0;z-index:100;
+  height:64px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  background:linear-gradient(180deg,#0a0a0f 0%,rgba(10,10,15,0.92) 100%);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,196,0,0.10);
+}
+.iconbtn{
+  width:42px;height:42px;border-radius:13px;
+  background:linear-gradient(160deg,#1a1820,#0c0b10);
+  border:1px solid rgba(255,255,255,0.10);
+  color:#ffd24a;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s, border-color .2s;
+}
+.iconbtn:active{transform:scale(.92);border-color:rgba(255,196,0,0.5)}
+.brand-small{display:flex;align-items:center;gap:10px}
+.brand-mini{
+  font-size:18px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(90deg,#8a6200,#ffd24a,#fff3b0,#ffd24a,#8a6200);
+  background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:shimmer 3s linear infinite;
+}
+.role-tag{
+  font-size:10px;padding:4px 10px;border-radius:20px;
+  background:rgba(255,196,0,0.12);color:#ffd24a;font-weight:700;
+  border:1px solid rgba(255,196,0,0.25);
+}
+
+/* ============ SCREENS ============ */
+.screen{
+  display:none;
+  padding:16px 16px 100px;
+  animation:screenIn .35s cubic-bezier(.2,.9,.2,1);
+}
+.screen.active{display:block}
+@keyframes screenIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.section-title{
+  font-size:19px;font-weight:900;margin:14px 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::before{
+  content:'';width:4px;height:18px;border-radius:4px;
+  background:linear-gradient(180deg,#ffd24a,#8a6200);
+}
+.muted{color:var(--muted);font-size:13px;line-height:1.7}
+
+/* ============ BOTTOM NAV ============ */
+.bottom{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(520px,100%);height:74px;z-index:500;
+  background:linear-gradient(0deg,#0a0a0f 0%,rgba(10,10,15,0.96) 100%);
+  backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,196,0,0.10);
+  display:flex;justify-content:space-around;align-items:center;
+  padding:0 6px;
+}
+.nav{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:#6a6659;font-size:10px;font-weight:700;
+  padding:8px 4px;border-radius:14px;
+  transition:color .2s, background .2s, transform .2s;
+  position:relative;
+}
+.nav b{font-size:20px;line-height:1;font-weight:400}
+.nav.active{color:var(--gold);background:rgba(255,196,0,0.06)}
+.nav.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:24px;height:2px;border-radius:2px;background:var(--gold);
+  box-shadow:0 0 10px var(--gold);
+}
+.nav:active{transform:scale(.94)}
+
+/* ============ COMMON COMPONENTS ============ */
+.cta-primary{
+  width:100%;padding:16px;margin-top:16px;
+  border-radius:18px;font-size:17px;font-weight:900;
+  background:linear-gradient(180deg,#ffe36b 0%,#ffc400 45%,#d99a00 100%);
+  color:#17120a;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 6px 0 #8a6200,
+    0 16px 30px -10px rgba(255,196,0,0.45);
+  transition:transform .1s, box-shadow .1s;
+  position:relative;overflow:hidden;
+}
+.cta-primary::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.6) 50%,transparent 70%);
+  transform:translateX(-100%);
+  animation:shine 3s ease-in-out infinite;
+}
+@keyframes shine{
+  0%,60%{transform:translateX(-100%)}
+  100%{transform:translateX(100%)}
+}
+.cta-primary:active{transform:translateY(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.4),0 2px 0 #8a6200,0 6px 16px -6px rgba(255,196,0,0.4)}
+
+.cta-ghost{
+  width:100%;padding:14px;margin-top:10px;
+  background:linear-gradient(160deg,#1a1820,#0c0b10);
+  border:1px solid rgba(255,255,255,0.10);
+  color:#e8e3d4;font-weight:700;font-size:14px;
+  border-radius:16px;
+  transition:border-color .2s, transform .2s;
+}
+.cta-ghost:active{transform:scale(.97);border-color:rgba(255,196,0,0.4)}
+
+.field{
+  width:100%;padding:14px 16px;margin-top:8px;
+  background:#0c0b10;
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:14px;
+  color:#fff;font-size:14px;outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field::placeholder{color:#5a554a}
+.field:focus{
+  border-color:rgba(255,196,0,0.55);
+  box-shadow:0 0 0 3px rgba(255,196,0,0.10);
+}
+label{display:block;font-size:12px;color:#a09a8a;font-weight:700;margin-top:12px}
+label:first-child{margin-top:0}
+
+.formbox{
+  background:linear-gradient(160deg,#14121a 0%,#0a090f 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 20px 40px -20px rgba(0,0,0,0.9);
+}
+
+/* ============ CUSTOMER HOME ============ */
+.scene-3d{
+  position:relative;height:230px;margin:4px 0 16px;
+  border-radius:var(--radius);overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 100%, rgba(255,196,0,0.18) 0%, transparent 60%),
+    linear-gradient(180deg,#15131c 0%,#08070b 100%);
+  border:1px solid rgba(255,196,0,0.18);
+  box-shadow:
+    inset 0 0 60px rgba(255,196,0,0.06),
+    0 20px 40px -20px rgba(0,0,0,0.95);
+  perspective:400px;
+}
+.scene-buildings{
+  position:absolute;bottom:52px;left:0;right:0;height:110px;
+  display:flex;align-items:flex-end;justify-content:space-around;
+  padding:0 8px;
+}
+.scene-buildings i{
+  position:relative;display:block;width:11%;
+  background:linear-gradient(180deg,#2a2635 0%,#0d0c12 100%);
+  border:1px solid rgba(255,196,0,0.12);
+  border-radius:3px 3px 0 0;
+  box-shadow:inset 0 0 12px rgba(255,196,0,0.04);
+}
+.scene-buildings i::after{
+  content:'';position:absolute;inset:4px;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 5px,rgba(255,220,100,0.16) 5px 7px),
+    repeating-linear-gradient(180deg,transparent 0 7px,rgba(255,220,100,0.10) 7px 9px);
+  border-radius:2px;
+}
+.scene-buildings i:nth-child(1){height:55%}
+.scene-buildings i:nth-child(2){height:90%}
+.scene-buildings i:nth-child(3){height:70%}
+.scene-buildings i:nth-child(4){height:100%}
+.scene-buildings i:nth-child(5){height:60%}
+.scene-buildings i:nth-child(6){height:85%}
+.scene-buildings i:nth-child(7){height:65%}
+.scene-road{
+  position:absolute;bottom:0;left:-20%;width:140%;height:70px;
+  background:linear-gradient(180deg,#1a1a22 0%,#050507 100%);
+  transform:rotateX(35deg);transform-origin:bottom center;
+  border-top:2px solid rgba(255,196,0,0.22);
+}
+.scene-road::after{
+  content:'';position:absolute;top:50%;left:0;right:0;height:3px;
+  background:repeating-linear-gradient(90deg,#ffd24a 0 30px,transparent 30px 60px);
+  opacity:.5;animation:roadMove 1.5s linear infinite;
+}
+@keyframes roadMove{from{background-position:0 0}to{background-position:60px 0}}
+.scene-taxi{
+  position:absolute;bottom:18px;left:50%;
+  transform:translateX(-50%) scaleX(-1);
+  font-size:92px;z-index:2;
+  filter:drop-shadow(0 12px 20px rgba(255,196,0,0.35)) drop-shadow(0 4px 8px rgba(0,0,0,0.8));
+  animation:taxiFloat 3s ease-in-out infinite;
+}
+@keyframes taxiFloat{
+  0%,100%{transform:translateX(-50%) scaleX(-1) translateY(0)}
+  50%{transform:translateX(-50%) scaleX(-1) translateY(-6px)}
+}
+.scene-glow{
+  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  width:200px;height:80px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,196,0,0.4) 0%,transparent 65%);
+  filter:blur(15px);z-index:1;
+}
+.hero-text{text-align:center;margin-bottom:8px}
+.hero-title{font-size:30px;font-weight:900;line-height:1.2}
+.hero-title span{color:var(--gold)}
+.hero-tag{font-size:12px;color:#a09a8a;letter-spacing:2px;margin-top:4px}
+
+.services-3d{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
+}
+.service-3d{
+  position:relative;padding:16px 6px 14px;
+  background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
+  border:1px solid rgba(255,196,0,0.22);
+  border-radius:18px;text-align:center;color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 14px 30px -14px rgba(0,0,0,0.9);
+  transition:transform .25s cubic-bezier(.2,.9,.2,1), box-shadow .25s, border-color .25s;
+  overflow:hidden;
+}
+.service-3d::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(255,196,0,0.15) 0%,transparent 60%);
+  opacity:0;transition:opacity .3s;
+}
+.service-3d:hover{border-color:rgba(255,196,0,0.5);transform:translateY(-4px)}
+.service-3d:hover::before{opacity:1}
+.service-3d:active{transform:scale(.96)}
+.service-3d .emoji{display:block;font-size:42px;margin-bottom:8px;position:relative;z-index:1;filter:drop-shadow(0 4px 10px rgba(255,196,0,0.3))}
+.service-3d strong{display:block;font-size:13px;color:var(--gold);font-weight:900;position:relative;z-index:1}
+.service-3d small{display:block;font-size:9.5px;color:#a09a8a;margin-top:4px;position:relative;z-index:1}
+
+/* ============ BOOKING ============ */
+.map-tabs{display:flex;gap:8px;margin-bottom:10px}
+.map-tab{
+  flex:1;padding:11px;border-radius:14px;
+  background:linear-gradient(160deg,#1a1820,#0c0b10);
+  border:1px solid rgba(255,255,255,0.09);
+  color:#a09a8a;font-size:12px;font-weight:700;
+  transition:all .2s;
+}
+.map-tab.active{
+  border-color:rgba(255,196,0,0.6);color:var(--gold);
+  background:linear-gradient(160deg,rgba(255,196,0,0.12),rgba(255,196,0,0.02));
+  box-shadow:0 0 20px -5px rgba(255,196,0,0.3);
+}
+#customerMap,#driverMap{
+  height:38vh;min-height:240px;border-radius:var(--radius);
+  border:1px solid rgba(255,196,0,0.2);
+  overflow:hidden;z-index:1;
+  box-shadow:inset 0 0 40px rgba(0,0,0,0.5);
+}
+.leaflet-container{background:#0a0a0f!important;font-family:inherit!important}
+.leaflet-tile{filter:brightness(.85) contrast(1.05) saturate(.9)}
+.leaflet-control-attribution{background:rgba(0,0,0,0.5)!important;color:#a09a8a!important;font-size:9px!important}
+.leaflet-control-attribution a{color:#ffd24a!important}
+.leaflet-control-zoom a{
+  background:#1a1820!important;color:#ffd24a!important;border-color:rgba(255,196,0,0.2)!important;
+}
+
+.order-card-3d{
+  margin-top:12px;padding:16px;
+  background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 20px 40px -20px rgba(0,0,0,0.9);
+}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.price{color:var(--gold);font-size:24px;font-weight:900;text-shadow:0 0 20px rgba(255,196,0,0.4)}
+
+/* ============ ORDER CARDS ============ */
+.order-item{
+  position:relative;padding:14px;margin-top:12px;
+  background:linear-gradient(160deg,#14121a 0%,#0a090f 100%);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  box-shadow:0 16px 30px -16px rgba(0,0,0,0.9);
+  animation:screenIn .3s ease;
+}
+.order-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.order-service{font-size:14px;font-weight:900;color:#fff}
+.status-badge{
+  font-size:10px;font-weight:900;padding:5px 10px;border-radius:20px;
+  background:rgba(255,196,0,0.12);color:#ffd24a;
+  border:1px solid rgba(255,196,0,0.25);
+  letter-spacing:.3px;white-space:nowrap;
+}
+.status-badge.accepted{background:rgba(78,161,255,0.15);color:#4ea1ff;border-color:rgba(78,161,255,0.3)}
+.status-badge.arrived{background:rgba(124,92,255,0.15);color:#7c5cff;border-color:rgba(124,92,255,0.3)}
+.status-badge.ongoing{background:rgba(0,212,160,0.15);color:#00d4a0;border-color:rgba(0,212,160,0.3)}
+.status-badge.completed{background:rgba(0,179,90,0.15);color:#00b35a;border-color:rgba(0,179,90,0.3)}
+.status-badge.cancelled{background:rgba(255,77,109,0.15);color:#ff4d6d;border-color:rgba(255,77,109,0.3)}
+.order-meta{font-size:12px;color:#a09a8a;line-height:1.8}
+.order-meta b{color:#e8e3d4;font-weight:700}
+.order-price{color:var(--gold);font-weight:900;font-size:14px;margin-top:8px;display:inline-block}
+.order-actions{display:flex;gap:8px;margin-top:12px}
+.btn-accept{
+  flex:1;padding:12px;border-radius:13px;
+  background:linear-gradient(180deg,#ffe36b,#ffc400);color:#17120a;
+  font-weight:900;font-size:14px;
+  box-shadow:0 4px 0 #8a6200;
+  transition:transform .1s;
+}
+.btn-accept:active{transform:translateY(3px);box-shadow:0 1px 0 #8a6200}
+.btn-cancel{
+  flex:1;padding:12px;border-radius:13px;
+  background:rgba(255,77,109,0.12);color:#ff4d6d;font-weight:700;font-size:13px;
+  border:1px solid rgba(255,77,109,0.3);
+}
+.btn-next{
+  flex:1;padding:12px;border-radius:13px;
+  background:linear-gradient(180deg,#4ea1ff,#1e6fd9);color:#fff;
+  font-weight:900;font-size:14px;
+  box-shadow:0 4px 0 #0d4a99;
+}
+.btn-next:active{transform:translateY(3px);box-shadow:0 1px 0 #0d4a99}
+
+/* ============ DRIVER ============ */
+.driver-status{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px;margin-bottom:12px;
+  background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 20px 40px -20px rgba(0,0,0,0.9);
+}
+.driver-status .label{font-size:13px;color:#a09a8a;font-weight:700}
+.driver-status .sub{font-size:11px;color:#5a554a;margin-top:2px}
+.toggle{
+  position:relative;display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:20px;
+  background:#0c0b10;border:1px solid rgba(255,255,255,0.1);
+  color:#a09a8a;font-size:12px;font-weight:900;
+  transition:all .3s;
+}
+.toggle.on{
+  background:linear-gradient(180deg,rgba(0,212,160,0.2),rgba(0,212,160,0.05));
+  border-color:rgba(0,212,160,0.5);color:#00d4a0;
+  box-shadow:0 0 20px -5px rgba(0,212,160,0.5);
+}
+.toggle-dot{
+  width:8px;height:8px;border-radius:50%;background:#5a554a;
+  transition:background .3s, box-shadow .3s;
+}
+.toggle.on .toggle-dot{background:#00d4a0;box-shadow:0 0 8px #00d4a0;animation:pulse 1.5s infinite}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,212,160,0.6)}
+  50%{box-shadow:0 0 0 6px rgba(0,212,160,0)}
+}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{
+  padding:16px 12px;text-align:center;
+  background:linear-gradient(160deg,#1a1820 0%,#0c0b10 100%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 16px 30px -16px rgba(0,0,0,0.9);
+}
+.stat-icon{font-size:24px;margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:900;color:var(--gold);line-height:1.1}
+.stat-label{font-size:10.5px;color:#a09a8a;margin-top:4px;font-weight:700}
+
+.empty-state{
+  text-align:center;padding:40px 16px;
+  color:#6a6659;
+}
+.empty-state .big{font-size:48px;margin-bottom:12px;opacity:.6}
+.empty-state .ttl{font-size:14px;font-weight:900;color:#a09a8a;margin-bottom:6px}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:linear-gradient(160deg,#1a1820,#0c0b10);
+  border:1px solid rgba(255,196,0,0.4);
+  color:#fff;font-size:13px;font-weight:700;
+  padding:12px 20px;border-radius:14px;
+  box-shadow:0 20px 40px -10px rgba(0,0,0,0.9), 0 0 30px -10px rgba(255,196,0,0.4);
+  z-index:9999;opacity:0;pointer-events:none;
+  transition:opacity .3s, transform .3s;
+  max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:rgba(0,212,160,0.5)}
+.toast.error{border-color:rgba(255,77,109,0.5)}
+
+/* ============ CUSTOM MARKERS ============ */
+.kokton-marker{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;
+  border:3px solid #fff;
+  font-size:16px;font-weight:900;
+  box-shadow:0 0 20px currentColor, 0 4px 12px rgba(0,0,0,0.6);
+  animation:markerPop .4s cubic-bezier(.2,.9,.2,1);
+}
+@keyframes markerPop{
+  from{transform:scale(0)}
+  to{transform:scale(1)}
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,196,0,0.3);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ===================== SPLASH ===================== -->
+<div id="splash">
+  <div class="splash-orb"></div>
+  <div class="splash-particles" id="particles"></div>
+  <div class="splash-logo">KOKTON</div>
+  <div class="splash-sub">تكسي العاصمة</div>
+  <div class="splash-line"></div>
+  <div class="splash-tag">أسرع • أأمن • أفخم</div>
+  <div class="splash-progress"></div>
+</div>
+
+<!-- ===================== ROLE PICKER ===================== -->
+<div id="rolePicker" class="hidden">
+  <div class="role-brand">
+    <div class="brand-crown">♛</div>
+    <div class="brand-name">KOKTON</div>
+    <div class="brand-sub">تكسي العاصمة</div>
+  </div>
+  <div class="role-title">اختر نوع الدخول</div>
+  <div class="role-cards">
+    <button class="role-card" onclick="enterApp('customer')">
+      <span class="role-emoji">👤</span>
+      <div class="role-name">زبون</div>
+      <div class="role-desc">اطلب رحلتك الآن<br>بكل سهولة وأمان</div>
+    </button>
+    <button class="role-card driver" onclick="enterApp('driver')">
+      <span class="role-emoji">🚕</span>
+      <div class="role-name">سائق</div>
+      <div class="role-desc">استقبل الطلبات<br>واكسب أكثر</div>
+    </button>
+  </div>
+  <div class="role-footer">الإصدار التجريبي • البيانات محلية على جهازك</div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden">
+
+  <header class="top">
+    <button class="iconbtn" onclick="goScreen(state.role === 'customer' ? 'c-home' : 'd-home')" aria-label="الرئيسية">⌂</button>
+    <div class="brand-small">
+      <span class="brand-mini">KOKTON</span>
+      <span class="role-tag" id="roleTag">زبون</span>
+    </div>
+    <button class="iconbtn" onclick="switchRole()" aria-label="تبديل" title="تبديل الدور">⇄</button>
+  </header>
+
+  <main>
+
+    <!-- ========== CUSTOMER HOME ========== -->
+    <section id="c-home" class="screen active">
+      <div class="scene-3d">
+        <div class="scene-buildings">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="scene-road"></div>
+        <div class="scene-glow"></div>
+        <div class="scene-taxi">🚕</div>
+      </div>
+      <div class="hero-text">
+        <div class="hero-title">تكسي <span>العاصمة</span></div>
+        <div class="hero-tag">KOKTON • التميز في كل رحلة</div>
+      </div>
+      <div class="section-title">اختر الخدمة</div>
+      <p class="muted">شنو تحتاج اليوم؟ اختر الخدمة حتى نحدد موقعك.</p>
+      <div class="services-3d">
+        <button class="service-3d" onclick="selectService('delivery')">
+          <span class="emoji">🛵</span>
+          <strong>مندوب توصيل</strong>
+          <small>توصيل طلباتك</small>
+        </button>
+        <button class="service-3d" onclick="selectService('tuktuk')">
+          <span class="emoji">🛺</span>
+          <strong>تكتك</strong>
+          <small>مشوار سريع</small>
+        </button>
+        <button class="service-3d" onclick="selectService('taxi')">
+          <span class="emoji">🚕</span>
+          <strong>تكسي</strong>
+          <small>رحلة مريحة</small>
+        </button>
+      </div>
+      <button class="cta-primary" onclick="selectService('taxi')">ابدأ الآن ➜</button>
+    </section>
+
+    <!-- ========== CUSTOMER BOOKING ========== -->
+    <section id="c-booking" class="screen">
+      <div class="section-title" id="bookingTitle">🚕 اطلب تكسي</div>
+      <p class="muted">حدد موقع الانطلاق والوجهة على الخريطة.</p>
+
+      <div class="map-tabs">
+        <button class="map-tab active" data-mode="pickup" onclick="setMapMode('pickup')">📍 الانطلاق</button>
+        <button class="map-tab" data-mode="dest" onclick="setMapMode('dest')">🎯 الوجهة</button>
+      </div>
+      <div id="customerMap"></div>
+
+      <div class="formbox" style="margin-top:12px">
+        <label>موقع الانطلاق</label>
+        <input id="pickup" class="field" placeholder="اضغط على الخريطة أو اكتب العنوان">
+        <button class="cta-ghost" onclick="locateMe()" style="margin-top:8px">📍 موقعي الحالي</button>
+
+        <label>الوجهة</label>
+        <input id="destination" class="field" placeholder="وين تريد تروح؟">
+      </div>
+
+      <div class="order-card-3d">
+        <div class="row">
+          <div>
+            <div class="muted">الخدمة المختارة</div>
+            <strong id="chosenService">تكسي 🚕</strong>
+          </div>
+          <div style="text-align:left">
+            <div class="muted">السعر التقديري</div>
+            <div class="price" id="price">—</div>
+          </div>
+        </div>
+        <button class="cta-primary" onclick="submitOrder()">تأكيد الطلب</button>
+      </div>
+      <button class="cta-ghost" onclick="goScreen('c-home')">رجوع للرئيسية</button>
+    </section>
+
+    <!-- ========== CUSTOMER ORDERS ========== -->
+    <section id="c-orders" class="screen">
+      <div class="section-title">طلباتي</div>
+      <p class="muted">تظهر هنا طلباتك وحالة كل طلب بشكل مباشر.</p>
+      <div id="customerOrdersList"></div>
+    </section>
+
+    <!-- ========== CUSTOMER ACCOUNT ========== -->
+    <section id="c-account" class="screen">
+      <div class="section-title">حسابي</div>
+      <div class="formbox">
+        <div style="font-size:52px;text-align:center;margin-bottom:8px;filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3))">👤</div>
+        <label>الاسم</label>
+        <input id="customerName" class="field" placeholder="اكتب اسمك">
+        <label>رقم الهاتف</label>
+        <input id="customerPhone" class="field" type="tel" placeholder="07xxxxxxxxx">
+        <button class="cta-primary" onclick="saveCustomerProfile()">حفظ البيانات</button>
+      </div>
+      <button class="cta-ghost" onclick="switchRole()">تبديل إلى واجهة السائق ⇄</button>
+      <button class="cta-ghost" onclick="resetAll()" style="color:#ff4d6d;border-color:rgba(255,77,109,0.25)">مسح كل البيانات</button>
+      <p class="muted" id="profileStatus" style="text-align:center;margin-top:12px"></p>
+    </section>
+
+    <!-- ========== DRIVER HOME ========== -->
+    <section id="d-home" class="screen">
+      <div class="driver-status">
+        <div>
+          <div class="label">حالة السائق</div>
+          <div class="sub" id="onlineSub">أنت غير متصل حالياً</div>
+        </div>
+        <button id="onlineToggle" class="toggle" onclick="toggleOnline()">
+          <span class="toggle-dot"></span>
+          <span class="toggle-label" id="onlineLabel">غير متصل</span>
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🚕</div>
+          <div class="stat-value" id="statTrips">0</div>
+          <div class="stat-label">رحلة مكتملة</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value" id="statEarnings">0</div>
+          <div class="stat-label">الأرباح (د.ع)</div>
+        </div>
+      </div>
+
+      <div id="driverMap"></div>
+
+      <div class="section-title">الطلب الحالي</div>
+      <div id="driverCurrentOrder"></div>
+    </section>
+
+    <!-- ========== DRIVER ORDERS ========== -->
+    <section id="d-orders" class="screen">
+      <div class="section-title">الطلبات المتاحة</div>
+      <p class="muted">الطلبات الجديدة من الزبائن. اضغط "قبول" لبدء الرحلة.</p>
+      <div id="driverAvailableOrders"></div>
+
+      <div class="section-title" style="margin-top:24px">سجل رحلاتي</div>
+      <div id="driverHistory"></div>
+    </section>
+
+    <!-- ========== DRIVER EARNINGS ========== -->
+    <section id="d-earnings" class="screen">
+      <div class="section-title">الأرباح والإحصائيات</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">💵</div>
+          <div class="stat-value" id="earnTotal">0</div>
+          <div class="stat-label">إجمالي الأرباح</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value" id="earnToday">0</div>
+          <div class="stat-label">أرباح اليوم</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="earnTrips">0</div>
+          <div class="stat-label">عدد الرحلات</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value" id="earnAvg">0</div>
+          <div class="stat-label">متوسط الرحلة</div>
+        </div>
+      </div>
+      <div class="section-title">آخر الرحلات</div>
+      <div id="earningsList"></div>
+    </section>
+
+    <!-- ========== DRIVER ACCOUNT ========== -->
+    <section id="d-account" class="screen">
+      <div class="section-title">حساب السائق</div>
+      <div class="formbox">
+        <div style="font-size:52px;text-align:center;margin-bottom:8px;filter:drop-shadow(0 6px 12px rgba(255,196,0,0.3))">🚕</div>
+        <label>اسم السائق</label>
+        <input id="driverName" class="field" placeholder="اكتب اسمك">
+        <label>رقم الهاتف</label>
+        <input id="driverPhone" class="field" type="tel" placeholder="07xxxxxxxxx">
+        <label>نوع السيارة / اللوحة</label>
+        <input id="driverCar" class="field" placeholder="مثلاً: كيا — 12345">
+        <button class="cta-primary" onclick="saveDriverProfile()">حفظ بيانات السائق</button>
+      </div>
+      <button class="cta-ghost" onclick="switchRole()">تبديل إلى واجهة الزبون ⇄</button>
+      <button class="cta-ghost" onclick="resetAll()" style="color:#ff4d6d;border-color:rgba(255,77,109,0.25)">مسح كل البيانات</button>
+      <p class="muted" id="driverProfileStatus" style="text-align:center;margin-top:12px"></p>
+    </section>
+
+  </main>
+
+  <nav class="bottom" id="bottomNav"></nav>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   KOKTON — App Logic
+   ========================================================= */
+
+/* ---------- SHORTCUTS ---------- */
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Number(n).toLocaleString('en-US');
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const haptic = () => { if (navigator.vibrate) try { navigator.vibrate(18); } catch(e){} };
+
+/* ---------- CONSTANTS ---------- */
+const SERVICES = {
+  taxi:     { label: 'تكسي 🚕',       rate: 1500, min: 3000, icon: '🚕' },
+  tuktuk:   { label: 'تكتك 🛺',       rate: 1000, min: 2000, icon: '🛺' },
+  delivery: { label: 'مندوب توصيل 🛵', rate: 2000, min: 4000, icon: '🛵' }
+};
+
+const STATUS = {
+  pending:   { label: 'بانتظار سائق',       cls: '' },
+  accepted:  { label: 'السائق في الطريق',    cls: 'accepted' },
+  arrived:   { label: 'السائق وصل',          cls: 'arrived' },
+  ongoing:   { label: 'الرحلة جارية',        cls: 'ongoing' },
+  completed: { label: 'مكتملة',              cls: 'completed' },
+  cancelled: { label: 'ملغاة',               cls: 'cancelled' }
+};
+
+const ROLE_NAV = {
+  customer: [
+    { id: 'c-home',    icon: '⌂', label: 'الرئيسية' },
+    { id: 'c-orders',  icon: '◷', label: 'طلباتي' },
+    { id: 'c-account', icon: '♙', label: 'حسابي' }
+  ],
+  driver: [
+    { id: 'd-home',     icon: '⌂',  label: 'الرئيسية' },
+    { id: 'd-orders',   icon: '📋', label: 'الطلبات' },
+    { id: 'd-earnings', icon: '💰', label: 'الأرباح' },
+    { id: 'd-account',  icon: '♙',  label: 'حسابي' }
+  ]
+};
+
+const LS = {
+  orders:   'kokton_orders',
+  customer: 'kokton_customer',
+  driver:   'kokton_driver',
+  driverId: 'kokton_driver_id',
+  online:   'kokton_online'
+};
+
+/* ---------- STATE ---------- */
+const state = {
+  role: null,
+  screen: null,
+  service: 'taxi',
+  mapMode: 'pickup',
+  pickupCoords: null,
+  destCoords: null,
+  driverId: null,
+  online: false
+};
+
+/* ---------- STORAGE ---------- */
+function getOrders() {
+  try { return JSON.parse(localStorage.getItem(LS.orders) || '[]'); }
+  catch(e) { return []; }
+}
+function setOrders(list) {
+  try { localStorage.setItem(LS.orders, JSON.stringify(list)); } catch(e){}
+  broadcastUpdate();
+}
+function getCustomer() {
+  try { return JSON.parse(localStorage.getItem(LS.customer) || '{}'); } catch(e){ return {}; }
+}
+function getDriver() {
+  try { return JSON.parse(localStorage.getItem(LS.driver) || '{}'); } catch(e){ return {}; }
+}
+function getDriverId() {
+  let id = null;
+  try { id = localStorage.getItem(LS.driverId); } catch(e){}
+  if (!id) {
+    id = 'drv_' + Math.random().toString(36).slice(2, 10);
+    try { localStorage.setItem(LS.driverId, id); } catch(e){}
+  }
+  return id;
+}
+function getOnline() {
+  try { return localStorage.getItem(LS.online) === '1'; } catch(e){ return false; }
+}
+function setOnline(v) {
+  try { localStorage.setItem(LS.online, v ? '1' : '0'); } catch(e){}
+}
+
+/* ---------- BROADCAST ---------- */
+let bc = null;
+try {
+  if ('BroadcastChannel' in window) {
+    bc = new BroadcastChannel('kokton');
+    bc.onmessage = () => refreshFromStorage();
+  }
+} catch(e){}
+function broadcastUpdate() {
+  if (bc) try { bc.postMessage('update'); } catch(e){}
+}
+
+/* ---------- TOAST ---------- */
+let toastTimer = null;
+function toast(msg, type = 'info') {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  clearTimeout(toastTimer);
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 350);
+  }, 2800);
+}
+
+/* ---------- UTIL ---------- */
+function haversine(a, b) {
+  if (!a || !b) return null;
+  const R = 6371;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+  const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function calcPrice(service, km) {
+  if (!km || km <= 0) return null;
+  const s = SERVICES[service];
+  const raw = km * s.rate;
+  return Math.max(s.min, Math.round(raw / 250) * 250);
+}
+
+/* ---------- SPLASH ---------- */
+function buildParticles() {
+  const wrap = $('particles');
+  if (!wrap) return;
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 2 + Math.random() * 4;
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.animationDelay = (Math.random() * 3) + 's';
+    p.style.animationDuration = (3 + Math.random() * 3) + 's';
+    wrap.appendChild(p);
+  }
+}
+
+function initSplash() {
+  buildParticles();
+  setTimeout(() => {
+    $('splash').classList.add('done');
+    const rp = $('rolePicker');
+    rp.classList.remove('hidden');
+    setTimeout(() => rp.classList.add('done'), 60);
+    setTimeout(() => rp.classList.add('hidden'), 600);
+    // Auto-enter saved role
+    try {
+      const saved = sessionStorage.getItem('kokton_role');
+      if (saved === 'customer' || saved === 'driver') {
+        enterApp(saved);
+      } else {
+        showRolePicker();
+      }
+    } catch(e) { showRolePicker(); }
+  }, 3200);
+}
+
+function showRolePicker() {
+  const rp = $('rolePicker');
+  rp.classList.remove('hidden', 'done');
+}
+
+function enterApp(role) {
+  try { sessionStorage.setItem('kokton_role', role); } catch(e){}
+  state.role = role;
+  $('rolePicker').classList.add('done', 'hidden');
+  $('app').classList.remove('hidden');
+  $('roleTag').textContent = role === 'customer' ? 'زبون' : 'سائق';
+  renderNav();
+  const first = role === 'customer' ? 'c-home' : 'd-home';
+  goScreen(first);
+  if (role === 'driver') {
+    state.driverId = getDriverId();
+    state.online = getOnline();
+    setTimeout(() => { updateOnlineUI(); renderDriverHome(); }, 250);
+  }
+  refreshFromStorage(true);
+}
+
+function switchRole() {
+  haptic();
+  const newRole = state.role === 'customer' ? 'driver' : 'customer';
+  enterApp(newRole);
+  toast(newRole === 'customer' ? 'تم التبديل إلى واجهة الزبون' : 'تم التبديل إلى واجهة السائق', 'success');
+}
+
+/* ---------- NAV ---------- */
+function renderNav() {
+  const nav = $('bottomNav');
+  const items = ROLE_NAV[state.role] || [];
+  nav.innerHTML = items.map(it =>
+    `<button class="nav" data-screen="${it.id}" onclick="goScreen('${it.id}')">
+      <b>${it.icon}</b><span>${it.label}</span>
+    </button>`
+  ).join('');
+}
+
+function updateNavActive() {
+  document.querySelectorAll('.nav').forEach(n => {
+    n.classList.toggle('active', n.dataset.screen === state.screen);
+  });
+}
+
+/* ---------- SCREEN ---------- */
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  state.screen = id;
+  updateNavActive();
+
+  if (id === 'c-booking') {
+    setTimeout(() => { initCustomerMap(); if (customerMap) customerMap.invalidateSize(); }, 200);
+  }
+  if (id === 'd-home') {
+    setTimeout(() => { initDriverMap(); if (driverMap) driverMap.invalidateSize(); renderDriverHome(); }, 200);
+  }
+  if (id === 'c-orders') renderCustomerOrders();
+  if (id === 'd-orders') renderDriverOrders();
+  if (id === 'd-earnings') renderEarnings();
+  if (id === 'c-account') loadCustomerProfileForm();
+  if (id === 'd-account') loadDriverProfileForm();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =========================================================
+   CUSTOMER
+   ========================================================= */
+
+function selectService(s) {
+  haptic();
+  state.service = s;
+  $('bookingTitle').textContent = SERVICES[s].label + ' — تحديد الرحلة';
+  $('chosenService').textContent = SERVICES[s].label;
+  updatePricePreview();
+  goScreen('c-booking');
+}
+
+/* ---------- CUSTOMER MAP ---------- */
+let customerMap = null;
+let cPickupMarker = null, cDestMarker = null, cRouteLine = null;
+
+function initCustomerMap() {
+  if (customerMap) return;
+  if (!window.L) {
+    $('customerMap').innerHTML = '<div class="empty-state"><div class="big">🗺️</div><div class="ttl">تعذر تحميل الخريطة</div><div>تحقق من اتصال الإنترنت</div></div>';
+    return;
+  }
+  customerMap = L.map('customerMap', { zoomControl: true, attributionControl: true })
+    .setView([31.05, 46.26], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(customerMap);
+
+  customerMap.on('click', (e) => onCustomerMapClick(e.latlng));
+}
+
+function onCustomerMapClick(latlng) {
+  if (state.mapMode === 'pickup') {
+    state.pickupCoords = { lat: latlng.lat, lng: latlng.lng };
+    $('pickup').value = '📍 ' + latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
+    if (cPickupMarker) cPickupMarker.setLatLng(latlng);
+    else cPickupMarker = L.marker(latlng, { icon: makeIcon('#00d4a0', 'A') }).addTo(customerMap);
+  } else {
+    state.destCoords = { lat: latlng.lat, lng: latlng.lng };
+    $('destination').value = '🎯 ' + latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
+    if (cDestMarker) cDestMarker.setLatLng(latlng);
+    else cDestMarker = L.marker(latlng, { icon: makeIcon('#ff4d6d', 'B') }).addTo(customerMap);
+  }
+  updateRouteLine();
+  updatePricePreview();
+  haptic();
+}
+
+function setMapMode(mode) {
+  state.mapMode = mode;
+  document.querySelectorAll('.map-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === mode)
+  );
+}
+
+function locateMe() {
+  if (!navigator.geolocation) { toast('المتصفح لا يدعم تحديد الموقع', 'error'); return; }
+  toast('جاري تحديد موقعك...', 'info');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      if (customerMap) customerMap.setView(latlng, 16);
+      state.pickupCoords = latlng;
+      $('pickup').value = '📍 موقعي الحالي (' + latlng.lat.toFixed(4) + ', ' + latlng.lng.toFixed(4) + ')';
+      if (cPickupMarker) cPickupMarker.setLatLng(latlng);
+      else if (customerMap) cPickupMarker = L.marker(latlng, { icon: makeIcon('#00d4a0', 'A') }).addTo(customerMap);
+      updateRouteLine();
+      updatePricePreview();
+      toast('تم تحديد موقعك', 'success');
+    },
+    () => toast('لم نتمكن من تحديد موقعك — فعّل إذن الموقع', 'error'),
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
+}
+
+function makeIcon(color, text) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="kokton-marker" style="background:${color};color:#fff;box-shadow:0 0 20px ${color},0 4px 12px rgba(0,0,0,0.6)">${text}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18]
+  });
+}
+
+function updateRouteLine() {
+  if (!customerMap) return;
+  if (cRouteLine) { customerMap.removeLayer(cRouteLine); cRouteLine = null; }
+  if (state.pickupCoords && state.destCoords) {
+    cRouteLine = L.polyline([
+      [state.pickupCoords.lat, state.pickupCoords.lng],
+      [state.destCoords.lat, state.destCoords.lng]
+    ], {
+      color: '#ffd24a', weight: 3, opacity: 0.8, dashArray: '8 8'
+    }).addTo(customerMap);
+    try { customerMap.fitBounds(cRouteLine.getBounds(), { padding: [40, 40] }); } catch(e){}
+  }
+}
+
+function updatePricePreview() {
+  const el = $('price');
+  if (!el) return;
+  if (state.pickupCoords && state.destCoords) {
+    const km = haversine(state.pickupCoords, state.destCoords);
+    const p = calcPrice(state.service, km);
+    el.textContent = fmt(p) + ' د.ع';
+    el.dataset.price = p;
+    el.dataset.km = km.toFixed(1);
+  } else {
+    el.textContent = '—';
+    el.dataset.price = '';
+    el.dataset.km = '';
+  }
+}
+
+/* ---------- SUBMIT ORDER ---------- */
+function submitOrder() {
+  const pickup = $('pickup').value.trim();
+  const dest = $('destination').value.trim();
+
+  if (!pickup) { toast('حدد موقع الانطلاق أولاً', 'error'); return; }
+  if (!dest) { toast('اكتب الوجهة المطلوبة', 'error'); return; }
+
+  const km = haversine(state.pickupCoords, state.destCoords);
+  const price = calcPrice(state.service, km);
+  const cust = getCustomer();
+
+  const order = {
+    id: 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    service: state.service,
+    serviceLabel: SERVICES[state.service].label,
+    customerName: cust.name || 'زبون',
+    customerPhone: cust.phone || '',
+    pickup: pickup,
+    pickupCoords: state.pickupCoords,
+    dest: dest,
+    destCoords: state.destCoords,
+    distanceKm: km ? Number(km.toFixed(2)) : null,
+    price: price,
+    status: 'pending',
+    driverId: null,
+    driverName: null,
+    driverPhone: null,
+    driverCar: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  const list = getOrders();
+  list.unshift(order);
+  setOrders(list);
+  haptic();
+  toast('✅ تم إرسال طلبك — بانتظار سائق', 'success');
+
+  // reset
+  state.pickupCoords = null;
+  state.destCoords = null;
+  $('pickup').value = '';
+  $('destination').value = '';
+  if (cPickupMarker && customerMap) { customerMap.removeLayer(cPickupMarker); cPickupMarker = null; }
+  if (cDestMarker && customerMap) { customerMap.removeLayer(cDestMarker); cDestMarker = null; }
+  if (cRouteLine && customerMap) { customerMap.removeLayer(cRouteLine); cRouteLine = null; }
+  updatePricePreview();
+
+  setTimeout(() => goScreen('c-orders'), 400);
+}
+
+/* ---------- CUSTOMER ORDERS LIST ---------- */
+function renderCustomerOrders() {
+  const el = $('customerOrdersList');
+  if (!el) return;
+  const list = getOrders();
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="big">🚕</div>
+      <div class="ttl">ما عندك طلبات حالياً</div>
+      <div>اطلب رحلتك الأولى من الرئيسية</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = list.map(o => {
+    const st = STATUS[o.status] || STATUS.pending;
+    const driverInfo = o.driverName ? `
+      <div style="margin-top:10px;padding:10px;background:rgba(255,196,0,0.06);border-radius:12px;border:1px solid rgba(255,196,0,0.2)">
+        <div style="font-size:11px;color:#a09a8a">السائق</div>
+        <div style="font-weight:900;color:#ffd24a;font-size:13px">${esc(o.driverName)}${o.driverCar ? ' — ' + esc(o.driverCar) : ''}</div>
+        ${o.driverPhone ? `<div style="font-size:11px;color:#a09a8a;margin-top:2px">📞 ${esc(o.driverPhone)}</div>` : ''}
+      </div>` : '';
+
+    const actions = o.status === 'pending' ? `
+      <div class="order-actions">
+        <button class="btn-cancel" onclick="cancelOrder('${o.id}')">إلغاء الطلب</button>
+      </div>` : '';
+
+    return `<div class="order-item">
+      <div class="order-head">
+        <span class="order-service">${o.serviceLabel}</span>
+        <span class="status-badge ${st.cls}">${st.label}</span>
+      </div>
+      <div class="order-meta">
+        <div>من: <b>${esc(o.pickup)}</b></div>
+        <div>إلى: <b>${esc(o.dest)}</b></div>
+        ${o.distanceKm ? `<div>المسافة: <b>${o.distanceKm} كم</b></div>` : ''}
+      </div>
+      ${o.price ? `<div class="order-price">${fmt(o.price)} د.ع</div>` : ''}
+      ${driverInfo}
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+function cancelOrder(id) {
+  if (!confirm('هل تريد إلغاء هذا الطلب؟')) return;
+  const list = getOrders();
+  const o = list.find(x => x.id === id);
+  if (!o) return;
+  if (o.status !== 'pending') { toast('لا يمكن إلغاء طلب مقبول', 'error'); return; }
+  o.status = 'cancelled';
+  o.updatedAt = Date.now();
+  setOrders(list);
+  renderCustomerOrders();
+  toast('تم إلغاء الطلب', 'info');
+}
+
+/* =========================================================
+   DRIVER
+   ========================================================= */
+
+function updateOnlineUI() {
+  const t = $('onlineToggle');
+  const l = $('onlineLabel');
+  const sub = $('onlineSub');
+  if (!t) return;
+  t.classList.toggle('on', state.online);
+  l.textContent = state.online ? 'متصل' : 'غير متصل';
+  sub.textContent = state.online ? 'أنت متصل — تظهر لك الطلبات الجديدة' : 'أنت غير متصل حالياً';
+}
+
+function toggleOnline() {
+  state.online = !state.online;
+  setOnline(state.online);
+  updateOnlineUI();
+  haptic();
+  toast(state.online ? '✅ أنت الآن متصل' : 'تم قطع الاتصال', state.online ? 'success' : 'info');
+  renderDriverHome();
+  renderDriverOrders();
+}
+
+function getActiveDriverOrder(list) {
+  return list.find(o =>
+    o.driverId === state.driverId &&
+    ['accepted', 'arrived', 'ongoing'].includes(o.status)
+  ) || null;
+}
+
+function getAvailableOrders(list) {
+  return list.filter(o => o.status === 'pending');
+}
+
+function getDriverHistory(list) {
+  return list.filter(o =>
+    o.driverId === state.driverId &&
+    ['completed', 'cancelled'].includes(o.status)
+  );
+}
+
+/* ---------- DRIVER HOME ---------- */
+let driverMap = null;
+let dPickupMarker = null, dDestMarker = null, dRouteLine = null;
+
+function initDriverMap() {
+  if (driverMap) return;
+  if (!window.L) {
+    $('driverMap').innerHTML = '<div class="empty-state"><div class="big">🗺️</div><div class="ttl">تعذر تحميل الخريطة</div></div>';
+    return;
+  }
+  driverMap = L.map('driverMap', { zoomControl: true }).setView([31.05, 46.26], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(driverMap);
+}
+
+function renderDriverHome() {
+  const list = getOrders();
+  const active = getActiveDriverOrder(list);
+
+  // stats
+  const history = list.filter(o => o.driverId === state.driverId && o.status === 'completed');
+  const earnings = history.reduce((s, o) => s + (Number(o.price) || 0), 0);
+  if ($('statTrips')) $('statTrips').textContent = history.length;
+  if ($('statEarnings')) $('statEarnings').textContent = fmt(earnings);
+
+  // active order card
+  const wrap = $('driverCurrentOrder');
+  if (!wrap) return;
+  if (!active) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:26px 16px">
+      <div class="big">🚕</div>
+      <div class="ttl">${state.online ? 'بانتظار طلب جديد...' : 'أنت غير متصل'}</div>
+      <div>${state.online ? 'سيظهر هنا الطلب الحالي بعد القبول' : 'فعّل الاتصال أعلاه لاستقبال الطلبات'}</div>
+    </div>`;
+    clearDriverMarkers();
+    return;
+  }
+
+  const st = STATUS[active.status] || STATUS.pending;
+  let nextBtn = '';
+  if (active.status === 'accepted') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')">وصلت لموقع الزبون</button>`;
+  if (active.status === 'arrived') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')">بدء الرحلة</button>`;
+  if (active.status === 'ongoing') nextBtn = `<button class="btn-next" onclick="advanceDriverOrder('${active.id}')" style="background:linear-gradient(180deg,#00d4a0,#009968);box-shadow:0 4px 0 #006e4d">إنهاء الرحلة</button>`;
+
+  wrap.innerHTML = `<div class="order-item">
+    <div class="order-head">
+      <span class="order-service">${active.serviceLabel}</span>
+      <span class="status-badge ${st.cls}">${st.label}</span>
+    </div>
+    <div class="order-meta">
+      <div>👤 الزبون: <b>${esc(active.customerName)}</b></div>
+      ${active.customerPhone ? `<div>📞 ${esc(active.customerPhone)}</div>` : ''}
+      <div>📍 من: <b>${esc(active.pickup)}</b></div>
+      <div>🎯 إلى: <b>${esc(active.dest)}</b></div>
+      ${active.distanceKm ? `<div>المسافة: <b>${active.distanceKm} كم</b></div>` : ''}
+    </div>
+    ${active.price ? `<div class="order-price">${fmt(active.price)} د.ع</div>` : ''}
+    <div class="order-actions">${nextBtn}</div>
+  </div>`;
+
+  updateDriverMap(active);
+}
+
+function clearDriverMarkers() {
+  if (!driverMap) return;
+  if (dPickupMarker) { driverMap.removeLayer(dPickupMarker); dPickupMarker = null; }
+  if (dDestMarker) { driverMap.removeLayer(dDestMarker); dDestMarker = null; }
+  if (dRouteLine) { driverMap.removeLayer(dRouteLine); dRouteLine = null; }
+}
+
+function updateDriverMap(order) {
+  if (!driverMap) { initDriverMap(); }
+  if (!driverMap) return;
+  clearDriverMarkers();
+
+  const p = order.pickupCoords;
+  const d = order.destCoords;
+
+  if (p) {
+    dPickupMarker = L.marker([p.lat, p.lng], { icon: makeIcon('#00d4a0', 'A') }).addTo(driverMap);
+  }
+  if (d) {
+    dDestMarker = L.marker([d.lat, d.lng], { icon: makeIcon('#ff4d6d', 'B') }).addTo(driverMap);
+  }
+  if (p && d) {
+    dRouteLine = L.polyline([[p.lat, p.lng], [d.lat, d.lng]], {
+      color: '#ffd24a', weight: 3, opacity: 0.85, dashArray: '8 8'
+    }).addTo(driverMap);
+    try { driverMap.fitBounds(dRouteLine.getBounds(), { padding: [40, 40] }); } catch(e){}
+  } else if (p) {
+    driverMap.setView([p.lat, p.lng], 15);
+  } else if (d) {
+    driverMap.setView([d.lat, d.lng], 15);
+  }
+}
+
+/* ---------- DRIVER ORDERS ---------- */
+function renderDriverOrders() {
+  const list = getOrders();
+  const avail = getAvailableOrders(list);
+  const history = getDriverHistory(list);
+
+  // available
+  const availEl = $('driverAvailableOrders');
+  if (availEl) {
+    if (!state.online) {
+      availEl.innerHTML = `<div class="empty-state" style="padding:26px 16px">
+        <div class="big">🔴</div>
+        <div class="ttl">أنت غير متصل</div>
+        <div>فعّل الاتصال من الرئيسية لاستقبال الطلبات</div>
+      </div>`;
+    } else if (!avail.length) {
+      availEl.innerHTML = `<div class="empty-state" style="padding:26px 16px">
+        <div class="big">⏳</div>
+        <div class="ttl">لا توجد طلبات حالياً</div>
+        <div>سيظهر هنا أي طلب جديد من الزبائن</div>
+      </div>`;
+    } else {
+      availEl.innerHTML = avail.map(o => {
+        const st = STATUS[o.status];
+        return `<div class="order-item">
+          <div class="order-head">
+            <span class="order-service">${o.serviceLabel}</span>
+            <span class="status-badge ${st.cls}">${st.label}</span>
+          </div>
+          <div class="order-meta">
+            <div>👤 ${esc(o.customerName)}${o.customerPhone ? ' — ' + esc(o.customerPhone) : ''}</div>
+            <div>📍 من: <b>${esc(o.pickup)}</b></div>
+            <div>🎯 إلى: <b>${esc(o.dest)}</b></div>
+            ${o.distanceKm ? `<div>المسافة: <b>${o.distanceKm} كم</b></div>` : ''}
+          </div>
+          ${o.price ? `<div class="order-price">${fmt(o.price)} د.ع</div>` : ''}
+          <div class="order-actions">
+            <button class="btn-accept" onclick="acceptOrder('${o.id}')">قبول الطلب</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // history
+  const histEl = $('driverHistory');
+  if (histEl) {
+    if (!history.length) {
+      histEl.innerHTML = `<div class="empty-state" style="padding:22px 16px">
+        <div class="big">📋</div>
+        <div class="ttl">ما عندك رحلات سابقة بعد</div>
+      </div>`;
+    } else {
+      histEl.innerHTML = history.slice(0, 10).map(o => {
+        const st = STATUS[o.status];
+        return `<div class="order-item" style="opacity:.9">
+          <div class="order-head">
+            <span class="order-service">${o.serviceLabel}</span>
+            <span class="status-badge ${st.cls}">${st.label}</span>
+          </div>
+          <div class="order-meta">
+            <div>📍 ${esc(o.pickup)} → 🎯 ${esc(o.dest)}</div>
+          </div>
+          ${o.price ? `<div class="order-price">${fmt(o.price)} د.ع</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function acceptOrder(id) {
+  const list = getOrders();
+  const o = list.find(x => x.id === id);
+  if (!o || o.status !== 'pending') return;
+  const drv = getDriver();
+  o.status = 'accepted';
+  o.driverId = state.driverId;
+  o.driverName = drv.name || 'سائق KOKTON';
+  o.driverPhone = drv.phone || '';
+  o.driverCar = drv.car || '';
+  o.updatedAt = Date.now();
+  setOrders(list);
+
+  if (!state.online) {
+    state.online = true;
+    setOnline(true);
+    updateOnlineUI();
+  }
+
+  haptic();
+  toast('✅ تم قبول الطلب — توجه لموقع الزبون', 'success');
+  renderDriverHome();
+  renderDriverOrders();
+  goScreen('d-home');
+}
+
+function advanceDriverOrder(id) {
+  const list = getOrders();
+  const o = list.find(x => x.id === id);
+  if (!o || o.driverId !== state.driverId) return;
+
+  const flow = { accepted: 'arrived', arrived: 'ongoing', ongoing: 'completed' };
+  const next = flow[o.status];
+  if (!next) return;
+
+  o.status = next;
+  o.updatedAt = Date.now();
+  setOrders(list);
+  haptic();
+
+  const messages = {
+    arrived: '📍 وصلت لموقع الزبون',
+    ongoing: '🚕 بدأت الرحلة',
+    completed: '✅ تم إنهاء الرحلة بنجاح'
+  };
+  toast(messages[next] || 'تم التحديث', 'success');
+
+  renderDriverHome();
+  renderDriverOrders();
+  if (next === 'completed') renderEarnings();
+}
+
+/* ---------- EARNINGS ---------- */
+function renderEarnings() {
+  const list = getOrders();
+  const completed = list.filter(o => o.driverId === state.driverId && o.status === 'completed');
+  const total = completed.reduce((s, o) => s + (Number(o.price) || 0), 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todayEarn = completed
+    .filter(o => o.updatedAt >= today.getTime())
+    .reduce((s, o) => s + (Number(o.price) || 0), 0);
+  const avg = completed.length ? Math.round(total / completed.length) : 0;
+
+  if ($('earnTotal')) $('earnTotal').textContent = fmt(total);
+  if ($('earnToday')) $('earnToday').textContent = fmt(todayEarn);
+  if ($('earnTrips')) $('earnTrips').textContent = completed.length;
+  if ($('earnAvg')) $('earnAvg').textContent = fmt(avg);
+
+  const el = $('earningsList');
+  if (!el) return;
+  if (!completed.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:22px 16px">
+      <div class="big">💰</div>
+      <div class="ttl">لا توجد رحلات مكتملة بعد</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = completed.slice(0, 15).map(o => `
+    <div class="order-item" style="padding:12px">
+      <div class="order-head">
+        <span class="order-service" style="font-size:13px">${o.serviceLabel}</span>
+        <span class="status-badge completed">مكتملة</span>
+      </div>
+      <div class="order-meta" style="font-size:11.5px">
+        <div>📍 ${esc(o.pickup)} → 🎯 ${esc(o.dest)}</div>
+      </div>
+      <div class="order-price">${fmt(o.price || 0)} د.ع</div>
+    </div>
+  `).join('');
+}
+
+/* =========================================================
+   PROFILES
+   ========================================================= */
+function loadCustomerProfileForm() {
+  const c = getCustomer();
+  if ($('customerName')) $('customerName').value = c.name || '';
+  if ($('customerPhone')) $('customerPhone').value = c.phone || '';
+  if ($('profileStatus')) $('profileStatus').textContent = c.name ? 'البيانات محفوظة على جهازك' : '';
+}
+
+function saveCustomerProfile() {
+  const data = {
+    name: ($('customerName').value || '').trim(),
+    phone: ($('customerPhone').value || '').trim()
+  };
+  try { localStorage.setItem(LS.customer, JSON.stringify(data)); } catch(e){}
+  if ($('profileStatus')) $('profileStatus').textContent = '✅ تم حفظ بياناتك';
+  haptic();
+  toast('✅ تم حفظ البيانات', 'success');
+}
+
+function loadDriverProfileForm() {
+  const d = getDriver();
+  if ($('driverName')) $('driverName').value = d.name || '';
+  if ($('driverPhone')) $('driverPhone').value = d.phone || '';
+  if ($('driverCar')) $('driverCar').value = d.car || '';
+  if ($('driverProfileStatus')) $('driverProfileStatus').textContent = d.name ? 'البيانات محفوظة على جهازك' : '';
+}
+
+function saveDriverProfile() {
+  const data = {
+    name: ($('driverName').value || '').trim(),
+    phone: ($('driverPhone').value || '').trim(),
+    car: ($('driverCar').value || '').trim()
+  };
+  try { localStorage.setItem(LS.driver, JSON.stringify(data)); } catch(e){}
+  if ($('driverProfileStatus')) $('driverProfileStatus').textContent = '✅ تم حفظ بيانات السائق';
+  haptic();
+  toast('✅ تم حفظ بيانات السائق', 'success');
+  renderDriverHome();
+}
+
+/* ---------- RESET ---------- */
+function resetAll() {
+  if (!confirm('هل تريد مسح كل البيانات (الطلبات، الحسابات، السجل)؟')) return;
+  try {
+    Object.values(LS).forEach(k => localStorage.removeItem(k));
+    sessionStorage.removeItem('kokton_role');
+  } catch(e){}
+  broadcastUpdate();
+  toast('تم مسح كل البيانات', 'info');
+  setTimeout(() => location.reload(), 900);
+}
+
+/* =========================================================
+   LIVE REFRESH
+   ========================================================= */
+let lastOrdersJSON = '';
+function refreshFromStorage(force = false) {
+  const orders = getOrders();
+  const str = JSON.stringify(orders);
+  if (!force && str === lastOrdersJSON) return;
+  lastOrdersJSON = str;
+
+  if (!state.role) return;
+
+  if (state.screen === 'c-orders') renderCustomerOrders();
+  if (state.screen === 'c-home' && state.role === 'customer') { /* no-op */ }
+  if (state.role === 'driver') {
+    renderDriverHome();
+    if (state.screen === 'd-orders') renderDriverOrders();
+    if (state.screen === 'd-earnings') renderEarnings();
+  }
+}
+setInterval(refreshFromStorage, 1500);
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  state.driverId = getDriverId();
+  state.online = getOnline();
+  initSplash();
+});
+</script>
+</body>
+</html>
